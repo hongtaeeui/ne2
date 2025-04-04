@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import useAuthStore from "../lib/authStore";
+import useAuthStore from "../lib/store/authStore";
 
 export default function Home() {
   const router = useRouter();

@@ -1,5 +1,5 @@
 import axios from "axios";
-import useAuthStore from "./authStore";
+import useAuthStore from "./store/authStore";
 
 const axiosClient = axios.create({
   baseURL: "/api", // Next.js API Route로 요청

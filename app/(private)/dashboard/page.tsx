@@ -1,3 +1,4 @@
+"use client";
 import { AppSidebar } from "@/components/app-sidebar";
 import { ChartAreaInteractive } from "@/components/chart-area-interactive";
 import { DataTable } from "@/components/data-table";
@@ -6,8 +7,13 @@ import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 
 import data from "./data.json";
+import useAuthStore from "@/lib/store/authStore";
 
 export default function Page() {
+  const { user } = useAuthStore();
+
+  console.log("user", user);
+
   return (
     <SidebarProvider
       style={

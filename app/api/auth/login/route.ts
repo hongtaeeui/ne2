@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
 
   try {
     console.log("axios");
-    // 백엔드로 요청보내기
+    // 백엔드 외부 API 요청보내기
     const response = await axios.post(
       "http://localhost:3005/v1/auth/login",
       body,
