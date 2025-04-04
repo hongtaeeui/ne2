@@ -49,6 +49,20 @@ export async function POST(request: NextRequest) {
       console.error("상태 코드:", error.response?.status);
       console.error("응답 데이터:", error.response?.data);
 
+      // 401 오류일 경우 비밀번호 관련 메시지 표시
+      if (error.response?.status === 401) {
+        console.error("비밀번호 오류:", error.response?.data.message);
+        return NextResponse.json(
+          {
+            error: "인증 실패",
+            message: "비밀번호를 확인해주세요",
+            status: 401,
+            data: error.response?.data,
+          },
+          { status: 401 }
+        );
+      }
+
       return NextResponse.json(
         {
           error: "백엔드 연결 실패",

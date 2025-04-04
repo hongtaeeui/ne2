@@ -13,14 +13,16 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import Image from "next/image";
 import { useLogin } from "@/lib/hooks/useAuth";
-
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
   const router = useRouter();
   const [error, setError] = useState("");
+
+  console.log("error", error);
   const login = useLogin();
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -33,20 +35,49 @@ export function LoginForm({
 
     try {
       await login.mutateAsync({ email, password });
-      // 로그인 성공 시 메인 페이지로 이동
       router.push("/");
       router.refresh();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "로그인에 실패했습니다");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (err: any) {
+      // 백엔드에서 전달된 오류 데이터 확인
+      if (err.message && err.message.includes("500")) {
+        // 500 서버 오류 처리
+        setError("서버 연결에 문제가 있습니다. 관리자에게 문의해 주세요.");
+      } else if (err.response?.data) {
+        // 백엔드에서 보낸 메시지가 있으면 사용
+        setError(err.response.data.message || "로그인에 실패했습니다");
+      } else if (err.message && err.message.includes("401")) {
+        // 401 오류 (인증 실패) 처리
+        setError("아이디 또는 비밀번호를 확인해주세요(대소문자 확인필)");
+      } else if (err instanceof Error) {
+        // 일반 오류 처리
+        setError(err.message);
+      } else {
+        // 기타 오류
+        setError("로그인에 실패했습니다, 관리자에게 문의해 주세요.");
+      }
     }
   }
 
   return (
-    <div className={cn("flex flex-col gap-6", className)} {...props}>
-      <Card>
-        <CardHeader>
-          <CardTitle>Login to your account</CardTitle>
-          <CardDescription>
+    <div
+      className={cn(
+        "flex flex-col gap-6 items-center justify-center min-h-screen",
+        className
+      )}
+      {...props}
+    >
+      <Card className="w-full max-w-md">
+        <CardHeader className="flex flex-col items-center justify-center space-y-4">
+          <Image
+            src="/logos/logo-black-square.png"
+            alt="Logo"
+            width={240} // 원하는 너비
+            height={200} // 원하는 높이
+            className="-my-10" // 추가적인 스타일
+          />
+          <CardTitle className="text-center ">Login</CardTitle>
+          <CardDescription className="text-center">
             Enter your email below to login to your account
           </CardDescription>
         </CardHeader>
@@ -60,7 +91,7 @@ export function LoginForm({
                   id="email"
                   name="email"
                   type="email"
-                  placeholder="m@example.com"
+                  placeholder="nvision@neuronaware.com"
                   required
                   disabled={login.isPending}
                 />
@@ -80,6 +111,7 @@ export function LoginForm({
                   name="password"
                   type="password"
                   required
+                  placeholder="*********"
                   disabled={login.isPending}
                 />
               </div>
@@ -91,21 +123,7 @@ export function LoginForm({
                 >
                   {login.isPending ? "로그인 중..." : "Login"}
                 </Button>
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  disabled={login.isPending}
-                  type="button"
-                >
-                  Login with Google
-                </Button>
               </div>
-            </div>
-            <div className="mt-4 text-center text-sm">
-              Don&apos;t have an account?{" "}
-              <a href="#" className="underline underline-offset-4">
-                Sign up
-              </a>
             </div>
           </form>
         </CardContent>
