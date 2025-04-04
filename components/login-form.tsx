@@ -13,18 +13,18 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useLogin } from "@/lib/hooks/useAuth";
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const login = useLogin();
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setIsLoading(true);
     setError("");
 
     const formData = new FormData(e.currentTarget);
@@ -32,27 +32,12 @@ export function LoginForm({
     const password = formData.get("password") as string;
 
     try {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "로그인에 실패했습니다");
-      }
-
+      await login.mutateAsync({ email, password });
       // 로그인 성공 시 메인 페이지로 이동
       router.push("/");
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "로그인에 실패했습니다");
-    } finally {
-      setIsLoading(false);
     }
   }
 
@@ -77,7 +62,7 @@ export function LoginForm({
                   type="email"
                   placeholder="m@example.com"
                   required
-                  disabled={isLoading}
+                  disabled={login.isPending}
                 />
               </div>
               <div className="grid gap-3">
@@ -95,17 +80,21 @@ export function LoginForm({
                   name="password"
                   type="password"
                   required
-                  disabled={isLoading}
+                  disabled={login.isPending}
                 />
               </div>
               <div className="flex flex-col gap-3">
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? "로그인 중..." : "Login"}
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={login.isPending}
+                >
+                  {login.isPending ? "로그인 중..." : "Login"}
                 </Button>
                 <Button
                   variant="outline"
                   className="w-full"
-                  disabled={isLoading}
+                  disabled={login.isPending}
                   type="button"
                 >
                   Login with Google

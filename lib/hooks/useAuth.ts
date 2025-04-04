@@ -13,7 +13,10 @@ export const useLogin = () => {
 
   return useMutation({
     mutationFn: async ({ email, password }: LoginCredentials) => {
-      const response = await axiosClient.post("/auth", { email, password });
+      const response = await axiosClient.post("/auth/login", {
+        email,
+        password,
+      });
       return response.data;
     },
     onSuccess: (data) => {

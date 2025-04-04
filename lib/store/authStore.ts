@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import { useRouter } from "next/navigation";
+
 // User 타입 정의 (더 명확하게 설정)
 interface User {
   id: number;
