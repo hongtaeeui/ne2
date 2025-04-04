@@ -15,6 +15,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Image from "next/image";
 import { useLogin } from "@/lib/hooks/useAuth";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+
 export function LoginForm({
   className,
   ...props
@@ -99,12 +101,19 @@ export function LoginForm({
               <div className="grid gap-3">
                 <div className="flex items-center">
                   <Label htmlFor="password">Password</Label>
-                  <a
-                    href="#"
-                    className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
-                  >
-                    Forgot your password?
-                  </a>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <a
+                        href="#"
+                        className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
+                      >
+                        Forgot your password?
+                      </a>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>관리자에게 문의해주세요.</p>
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
                 <Input
                   id="password"

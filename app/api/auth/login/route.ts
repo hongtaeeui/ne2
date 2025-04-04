@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(
           {
             error: "인증 실패",
-            message: "비밀번호를 확인해주세요",
+            message: "아이디 또는 비밀번호를 확인해주세요",
             status: 401,
             data: error.response?.data,
           },
