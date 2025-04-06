@@ -2,12 +2,14 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { IconChartBar, IconChevronLeft, IconChevronRight, IconClipboardCheck, IconGauge, IconMenu2, IconSearch, IconSettings, IconUser } from "@tabler/icons-react";
+import { usePathname, useRouter } from "next/navigation";
+import { IconChartBar, IconChevronLeft, IconChevronRight, IconClipboardCheck, IconGauge, IconLogout, IconMenu2, IconSearch, IconSettings, IconUser } from "@tabler/icons-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { useLogout } from "@/lib/hooks/useAuth";
 
 // 사이드바 네비게이션 아이템 정의
 const navItems = [
@@ -33,11 +35,64 @@ const navItems = [
   },
 ];
 
+// 모바일 네비게이션 컴포넌트
+function MobileNav({ pathname, setIsMobileSidebarOpen, handleLogout }: { pathname: string; setIsMobileSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>; handleLogout: () => void }) {
+  return (
+    <div className="flex flex-col gap-4 py-4">
+      <div className="px-2">
+        <Link href="/dashboard" className="flex items-center gap-2 font-semibold" onClick={() => setIsMobileSidebarOpen(false)}>
+          <IconGauge className="size-5" />
+          <span>NE2 System</span>
+        </Link>
+      </div>
+      <nav className="grid gap-1 px-2">
+        {navItems.map((item) => (
+          <Button key={item.href} asChild variant={pathname.startsWith(item.href) ? "secondary" : "ghost"} className="justify-start" onClick={() => setIsMobileSidebarOpen(false)}>
+            <Link href={item.href}>
+              {item.icon}
+              <span className="ml-2">{item.title}</span>
+            </Link>
+          </Button>
+        ))}
+      </nav>
+      <div className="mt-auto border-t px-2 pt-4">
+        <div className="flex items-center gap-2 mb-4">
+          <div className="bg-primary text-primary-foreground flex size-8 items-center justify-center rounded-full">
+            <IconUser className="size-4" />
+          </div>
+          <div className="flex flex-col">
+            <span className="text-sm font-medium">Admin User</span>
+            <span className="text-xs text-muted-foreground">admin@example.com</span>
+          </div>
+        </div>
+        <Button variant="outline" className="w-full justify-start text-red-500" onClick={handleLogout}>
+          <IconLogout className="mr-2 h-4 w-4" />
+          로그아웃
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 export default function PrivateLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mainMargin, setMainMargin] = useState("0");
+
+  // useLogout 훅 사용
+  const logout = useLogout();
+
+  // 로그아웃 처리 함수
+  const handleLogout = async () => {
+    try {
+      await logout();
+      router.push("/login");
+    } catch (error) {
+      console.error("로그아웃 중 오류 발생:", error);
+    }
+  };
 
   useEffect(() => {
     const handleResize = () => {
@@ -65,7 +120,7 @@ export default function PrivateLayout({ children }: { children: React.ReactNode 
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="w-72 pr-0">
-            <MobileNav pathname={pathname} setIsMobileSidebarOpen={setIsMobileSidebarOpen} />
+            <MobileNav pathname={pathname} setIsMobileSidebarOpen={setIsMobileSidebarOpen} handleLogout={handleLogout} />
           </SheetContent>
         </Sheet>
         <div className="flex-1">
@@ -77,10 +132,30 @@ export default function PrivateLayout({ children }: { children: React.ReactNode 
           <IconSearch className="size-5" />
           <span className="sr-only">Search</span>
         </Button>
-        <Button variant="ghost" size="icon">
-          <IconUser className="size-5" />
-          <span className="sr-only">Account</span>
-        </Button>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon">
+              <IconUser className="size-5" />
+              <span className="sr-only">User Menu</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>내 계정</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <Link href="/profile">프로필</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/settings">설정</Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleLogout} className="text-red-500">
+              <IconLogout className="mr-2 h-4 w-4" />
+              로그아웃
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </header>
 
       <div className="flex flex-1 md:flex-row md:pt-0 pt-14">
@@ -147,51 +222,36 @@ export default function PrivateLayout({ children }: { children: React.ReactNode 
                 <IconSettings className="size-5" />
                 <span className="sr-only">Settings</span>
               </Button>
-              <Button variant="ghost" size="icon">
-                <IconUser className="size-5" />
-                <span className="sr-only">Account</span>
-              </Button>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <IconUser className="size-5" />
+                    <span className="sr-only">User Menu</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>내 계정</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link href="/profile">프로필</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/settings">설정</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout} className="text-red-500">
+                    <IconLogout className="mr-2 h-4 w-4" />
+                    로그아웃
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </header>
 
           {/* 페이지 콘텐츠 */}
           <div className="flex-1 overflow-auto p-0 md:pt-14">{children}</div>
         </main>
-      </div>
-    </div>
-  );
-}
-
-// 모바일 네비게이션 컴포넌트
-function MobileNav({ pathname, setIsMobileSidebarOpen }: { pathname: string; setIsMobileSidebarOpen: React.Dispatch<React.SetStateAction<boolean>> }) {
-  return (
-    <div className="flex flex-col gap-4 py-4">
-      <div className="px-2">
-        <Link href="/dashboard" className="flex items-center gap-2 font-semibold" onClick={() => setIsMobileSidebarOpen(false)}>
-          <IconGauge className="size-5" />
-          <span>NE2 System</span>
-        </Link>
-      </div>
-      <nav className="grid gap-1 px-2">
-        {navItems.map((item) => (
-          <Button key={item.href} asChild variant={pathname.startsWith(item.href) ? "secondary" : "ghost"} className="justify-start" onClick={() => setIsMobileSidebarOpen(false)}>
-            <Link href={item.href}>
-              {item.icon}
-              <span className="ml-2">{item.title}</span>
-            </Link>
-          </Button>
-        ))}
-      </nav>
-      <div className="mt-auto border-t px-2 pt-4">
-        <div className="flex items-center gap-2">
-          <div className="bg-primary text-primary-foreground flex size-8 items-center justify-center rounded-full">
-            <IconUser className="size-4" />
-          </div>
-          <div className="flex flex-col">
-            <span className="text-sm font-medium">Admin User</span>
-            <span className="text-xs text-muted-foreground">admin@example.com</span>
-          </div>
-        </div>
       </div>
     </div>
   );
