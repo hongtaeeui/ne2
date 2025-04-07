@@ -29,6 +29,7 @@ export async function GET(request: NextRequest) {
     const customerId = searchParams.get("customerId");
     const page = searchParams.get("page") || "1";
     const limit = searchParams.get("limit") || "10";
+    const search = searchParams.get("search");
 
     // Authorization 헤더 가져오기
     const authHeader = request.headers.get("authorization");
@@ -45,6 +46,7 @@ export async function GET(request: NextRequest) {
       page: number;
       limit: number;
       customerId?: string;
+      search?: string;
     } = {
       page: parseInt(page),
       limit: parseInt(limit),
@@ -53,6 +55,11 @@ export async function GET(request: NextRequest) {
     // customerId가 있는 경우에만 파라미터에 추가
     if (customerId) {
       params.customerId = customerId;
+    }
+
+    // search가 있는 경우에만 파라미터에 추가
+    if (search) {
+      params.search = search;
     }
 
     // 외부 API 호출 시 Authorization 헤더 포함

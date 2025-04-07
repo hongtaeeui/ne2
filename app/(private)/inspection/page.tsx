@@ -3,6 +3,8 @@
 import * as React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { IconPlus } from "@tabler/icons-react";
+import { debounce } from "lodash";
+import { useCallback, useMemo } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -32,16 +34,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-interface PaginatedResponse {
-  inspections: SimplifiedInspection[];
-  pagination: {
-    total: number;
-    currentPage: number;
-    itemsPerPage: number;
-    totalPages: number;
-  };
-}
-
 export default function InspectionPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -51,13 +43,16 @@ export default function InspectionPage() {
   const customerId = searchParams.get("customerId") || "all";
   const page = Number(searchParams.get("page")) || 1;
   const limit = Number(searchParams.get("limit")) || 10;
+  const search = searchParams.get("search") || "";
 
   // 고객사 데이터 가져오기
   const { data: customerData } = useGetCustomer();
 
   // 검사 데이터 가져오기
   const { data: paginatedData } = useGetInspection(
-    customerId === "all" ? undefined : { customerId, page, limit }
+    customerId === "all"
+      ? { page, limit, search: search || undefined }
+      : { customerId, page, limit, search: search || undefined }
   );
 
   // 페이지 변경 핸들러
@@ -75,6 +70,63 @@ export default function InspectionPage() {
     router.push(`?${params.toString()}`);
   };
 
+  // 페이지당 항목 수 변경 핸들러
+  const handleLimitChange = useCallback(
+    (value: string) => {
+      const params = new URLSearchParams(searchParams);
+      params.set("limit", value);
+      params.set("page", "1"); // 페이지당 항목 수가 변경되면 1페이지로 리셋
+      if (customerId && customerId !== "all") {
+        params.set("customerId", customerId);
+      }
+      router.push(`?${params.toString()}`);
+    },
+    [searchParams, customerId, router]
+  );
+
+  // 검색어 변경 핸들러
+  const handleSearchChange = useCallback(
+    (value: string) => {
+      const params = new URLSearchParams(searchParams);
+      if (value) {
+        params.set("search", value);
+      } else {
+        params.delete("search");
+      }
+      // 현재 선택된 고객사 정보 유지
+      if (customerId && customerId !== "all") {
+        params.set("customerId", customerId);
+      }
+      params.set("page", "1");
+      router.push(`?${params.toString()}`);
+    },
+    [searchParams, customerId, router]
+  );
+
+  // debounce 적용
+  const debouncedSearch = useMemo(
+    () => debounce((value: string) => handleSearchChange(value), 1000),
+    [handleSearchChange]
+  );
+
+  // 검색어 입력 핸들러
+  const handleSearchInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+    debouncedSearch(e.target.value);
+  };
+
+  // 컴포넌트가 언마운트될 때 debounce 취소
+  React.useEffect(() => {
+    return () => {
+      debouncedSearch.cancel();
+    };
+  }, [debouncedSearch]);
+
+  // URL의 검색어와 로컬 상태 동기화
+  React.useEffect(() => {
+    setSearchTerm(search);
+  }, [search]);
+
   // 검색된 인스펙션 필터링
   const filteredInspections =
     paginatedData?.inspections.filter((inspection) =>
@@ -87,7 +139,7 @@ export default function InspectionPage() {
         <CardHeader>
           <CardTitle>Inspection Dashboard</CardTitle>
           <CardDescription>
-            {filteredInspections.length} inspections found
+            {paginatedData?.pagination.total || 0} inspections found
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -111,8 +163,22 @@ export default function InspectionPage() {
                   placeholder="Search inspections..."
                   className="max-w-sm"
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={handleSearchInput}
                 />
+                <Select value={String(limit)} onValueChange={handleLimitChange}>
+                  <SelectTrigger className="w-[120px]">
+                    <SelectValue placeholder="Page Size" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="10">10개씩</SelectItem>
+                    <SelectItem value="20">20개씩</SelectItem>
+                    <SelectItem value="50">50개씩</SelectItem>
+                    <SelectItem value="100">100개씩</SelectItem>
+                    <SelectItem value="200">200개씩</SelectItem>
+                    <SelectItem value="500">500개씩</SelectItem>
+                    <SelectItem value="1000">1000개씩</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <Button onClick={() => router.push("/inspection/new")}>
                 <IconPlus className="mr-2 h-4 w-4" />

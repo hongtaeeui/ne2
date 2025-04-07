@@ -57,17 +57,25 @@ interface InspectionQueryParams {
   customerId?: string;
   page?: number;
   limit?: number;
+  search?: string;
 }
 
 export const useGetInspection = (params?: InspectionQueryParams) => {
   return useQuery({
-    queryKey: ["inspections", params?.customerId, params?.page, params?.limit],
+    queryKey: [
+      "inspections",
+      params?.customerId,
+      params?.page,
+      params?.limit,
+      params?.search,
+    ],
     queryFn: async () => {
       const response = await axiosClient.get<InspectionResponse>(
         `/inspection`,
         {
           params: {
             ...(params?.customerId && { customerId: params.customerId }),
+            ...(params?.search && { search: params.search }),
             page: params?.page || 1,
             limit: params?.limit || 10,
           },
