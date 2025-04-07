@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    console.log("response", response.data);
+    // console.log("response", response.data);
 
     // 응답 데이터 검증 및 변환
     const { customers, total } = response.data;

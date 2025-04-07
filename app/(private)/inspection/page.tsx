@@ -51,7 +51,32 @@ import {
   SubpartPreviewData,
 } from "@/components/subpart-preview-modal";
 import { useGetCustomer } from "@/lib/hooks/useCustomer";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
 // 인스펙션 데이터
+interface CustomerResponse {
+  id: number;
+  name: string;
+  contactName: string;
+  contactInfo: string;
+  createdAt: string;
+  updatedAt: string;
+  inUse: boolean | null;
+  parentCustomerId: number | null;
+  path: string;
+}
+
+interface CustomerListResponse {
+  customers: CustomerResponse[];
+  total: number;
+}
+
 interface Subpart {
   id: string;
   name: string;
@@ -314,9 +339,11 @@ export default function InspectionPage() {
     (model) => model.id === selectedModelId
   );
 
-  const { data: customerlists } = useGetCustomer();
+  const { data: customerData } = useGetCustomer();
+  const customers = (customerData as CustomerListResponse)?.customers;
+  const [selectedCustomer, setSelectedCustomer] = React.useState<string>("");
 
-  console.log("customerlists", customerlists);
+  console.log("customerlists", customerData);
 
   // State for selected subparts (for bulk actions)
   const [selectedSubparts, setSelectedSubparts] = React.useState<string[]>([]);
@@ -455,7 +482,23 @@ export default function InspectionPage() {
     <div className="p-6">
       <InspectionBreadcrumb />
 
-      <h1 className="text-2xl font-bold mb-6">Inspection Dashboard</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Inspection Dashboard</h1>
+        <div className="w-[300px]">
+          <Select value={selectedCustomer} onValueChange={setSelectedCustomer}>
+            <SelectTrigger>
+              <SelectValue placeholder="고객사 선택" />
+            </SelectTrigger>
+            <SelectContent>
+              {customers?.map((customer: CustomerResponse) => (
+                <SelectItem key={customer.id} value={customer.id.toString()}>
+                  {customer.name} ({customer.contactInfo})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* 첫 번째 컬럼: 인스펙션 리스트 */}
