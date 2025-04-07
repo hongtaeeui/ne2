@@ -21,54 +21,51 @@ import axiosClient from "../axiosClient";
 //   "RGBKMeansClusterWeightFile": null
 // }
 
-interface Model {
+export interface Model {
   id: number;
   name: string;
-  customerId: number;
-  seq: number | null;
   status: string;
-  desc: string | null;
-  createdAt: string;
-  updatedAt: string;
-  detectionRegionTL: {
-    x: number;
-    y: number;
-  };
-  detectionRegionBR: {
-    x: number;
-    y: number;
-  };
-  RGBKMeansClusterWeightFile: string | null;
+  subpartCount: number;
 }
 
-interface ModelCredentials {
-  inspectionId: number;
+export interface ModelResponse {
+  models: Model[];
+  total: number;
+}
+
+interface ModelQueryParams {
+  inspectionId?: number;
   page?: number;
   limit?: number;
 }
 
-interface ModelResponse {
-  items: Model[];
-  total: number;
-}
-
-export const useGetModels = ({
-  inspectionId,
-  page,
-  limit,
-}: ModelCredentials) => {
+export const useGetModels = (params?: ModelQueryParams) => {
   return useQuery({
-    queryKey: ["models", inspectionId, page, limit],
+    queryKey: ["models", params?.inspectionId, params?.page, params?.limit],
     queryFn: async () => {
       const response = await axiosClient.get<ModelResponse>(`/models`, {
         params: {
-          inspectionId,
-          page,
-          limit,
+          ...(params?.inspectionId && { inspectionId: params.inspectionId }),
+          page: params?.page || 1,
+          limit: params?.limit || 10,
         },
       });
-      return response.data;
+
+      const { models, total } = response.data;
+      const currentPage = params?.page || 1;
+      const itemsPerPage = params?.limit || 10;
+      const totalPages = Math.ceil(total / itemsPerPage);
+
+      return {
+        models,
+        pagination: {
+          total,
+          currentPage,
+          itemsPerPage,
+          totalPages,
+        },
+      };
     },
-    enabled: !!inspectionId, // inspectionId가 있을 때만 쿼리 실행
+    enabled: !!params?.inspectionId,
   });
 };

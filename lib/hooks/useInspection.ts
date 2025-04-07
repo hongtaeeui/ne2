@@ -4,10 +4,10 @@ import axiosClient from "../axiosClient";
 export interface SimplifiedInspection {
   name: string;
   modelCount: number;
+  id: number;
 }
 
-interface Inspection extends SimplifiedInspection {
-  id: number;
+export interface Inspection extends SimplifiedInspection {
   createdAt: string;
   updatedAt: string;
   ZPLString: string | null;
