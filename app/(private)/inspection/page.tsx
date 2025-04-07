@@ -33,6 +33,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Tooltip } from "@/components/ui/tooltip";
+import { useGetModels } from "@/lib/hooks/useModels";
 
 export default function InspectionPage() {
   const router = useRouter();
@@ -54,6 +61,15 @@ export default function InspectionPage() {
       ? { page, limit, search: search || undefined }
       : { customerId, page, limit, search: search || undefined }
   );
+
+  // 모델 데이터 가져오기 파라미터 INSPECTION ID, PAGE, LIMIT
+  const { data: modelData } = useGetModels({
+    inspectionId: 1,
+    page: page,
+    limit: limit,
+  });
+
+  console.log("modelData", modelData);
 
   // 페이지 변경 핸들러
   const handlePageChange = (newPage: number) => {
@@ -180,10 +196,27 @@ export default function InspectionPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <Button onClick={() => router.push("/inspection/new")}>
-                <IconPlus className="mr-2 h-4 w-4" />
-                New Inspection
-              </Button>
+              {/* 비활성화 처리 */}
+              {/* 툴팁 추가 */}
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div>
+                      <Button
+                        onClick={() => router.push("/inspection/new")}
+                        disabled={true}
+                        className="pointer-events-none" // 클릭은 막지만 툴팁은 가능하게 함
+                      >
+                        <IconPlus className="mr-2 h-4 w-4" />
+                        New Inspection
+                      </Button>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>준비중입니다.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
 
             <Table>
