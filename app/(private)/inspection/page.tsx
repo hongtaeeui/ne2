@@ -3,22 +3,54 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { IconCheck, IconEdit, IconFilter, IconPlus, IconSearch } from "@tabler/icons-react";
+import {
+  IconCheck,
+  IconEdit,
+  IconFilter,
+  IconPlus,
+  IconSearch,
+} from "@tabler/icons-react";
 
 import { InspectionBreadcrumb } from "@/components/inspection-breadcrumb";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import { SubpartPreviewModal, SubpartPreviewData } from "@/components/subpart-preview-modal";
-
+import {
+  SubpartPreviewModal,
+  SubpartPreviewData,
+} from "@/components/subpart-preview-modal";
+import { useGetCustomer } from "@/lib/hooks/useCustomer";
 // 인스펙션 데이터
 interface Subpart {
   id: string;
@@ -271,11 +303,20 @@ function getStatusColor(status: string) {
 export default function InspectionPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const selectedInspectionId = searchParams.get("inspection") || inspectionsData[0].id;
+  const selectedInspectionId =
+    searchParams.get("inspection") || inspectionsData[0].id;
   const selectedModelId = searchParams.get("model") || "";
 
-  const selectedInspection = inspectionsData.find((inspection) => inspection.id === selectedInspectionId);
-  const selectedModel = selectedInspection?.models.find((model) => model.id === selectedModelId);
+  const selectedInspection = inspectionsData.find(
+    (inspection) => inspection.id === selectedInspectionId
+  );
+  const selectedModel = selectedInspection?.models.find(
+    (model) => model.id === selectedModelId
+  );
+
+  const { data: customerlists } = useGetCustomer();
+
+  console.log("customerlists", customerlists);
 
   // State for selected subparts (for bulk actions)
   const [selectedSubparts, setSelectedSubparts] = React.useState<string[]>([]);
@@ -285,13 +326,15 @@ export default function InspectionPage() {
   const [newStatus, setNewStatus] = React.useState<boolean>(true);
 
   // 서브파트 모달 관련 상태
-  const [selectedSubpart, setSelectedSubpart] = React.useState<SubpartPreviewData | null>(null);
+  const [selectedSubpart, setSelectedSubpart] =
+    React.useState<SubpartPreviewData | null>(null);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = React.useState(false);
 
   // Handle selecting all subparts
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      const allSubpartIds = selectedModel?.subparts.map((subpart) => subpart.id) || [];
+      const allSubpartIds =
+        selectedModel?.subparts.map((subpart) => subpart.id) || [];
       setSelectedSubparts(allSubpartIds);
     } else {
       setSelectedSubparts([]);
@@ -323,7 +366,9 @@ export default function InspectionPage() {
 
   // Filter feature
   const [searchTerm, setSearchTerm] = React.useState("");
-  const filteredSubparts = selectedModel?.subparts.filter((subpart) => subpart.name.toLowerCase().includes(searchTerm.toLowerCase()));
+  const filteredSubparts = selectedModel?.subparts.filter((subpart) =>
+    subpart.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   // For custom indeterminate state
   const checkboxRef = React.useRef<HTMLButtonElement>(null);
@@ -331,7 +376,9 @@ export default function InspectionPage() {
     // Using a workaround for type safety
     if (checkboxRef.current) {
       // Cast to any to access indeterminate property
-      (checkboxRef.current as any).indeterminate = selectedSubparts.length > 0 && selectedSubparts.length < (selectedModel?.subparts.length || 0);
+      (checkboxRef.current as any).indeterminate =
+        selectedSubparts.length > 0 &&
+        selectedSubparts.length < (selectedModel?.subparts.length || 0);
     }
   }, [selectedSubparts, selectedModel?.subparts.length]);
 
@@ -341,9 +388,19 @@ export default function InspectionPage() {
     const checkItems = [];
 
     // 임의의 체크 항목 생성 (실제로는 API에서 가져와야 함)
-    const itemNames = ["Visual Inspection", "Performance Test", "Structural Integrity", "Safety Check"];
+    const itemNames = [
+      "Visual Inspection",
+      "Performance Test",
+      "Structural Integrity",
+      "Safety Check",
+    ];
     for (let i = 0; i < Math.floor(Math.random() * 3) + 2; i++) {
-      const status = Math.random() > 0.5 ? "passed" : Math.random() > 0.5 ? "pending" : "failed";
+      const status =
+        Math.random() > 0.5
+          ? "passed"
+          : Math.random() > 0.5
+          ? "pending"
+          : "failed";
       checkItems.push({
         name: itemNames[i % itemNames.length],
         status: status as "passed" | "failed" | "pending",
@@ -351,7 +408,12 @@ export default function InspectionPage() {
     }
 
     // 완료율 계산
-    const completionRate = subpart.status === "completed" ? 100 : subpart.status === "in-progress" ? Math.floor(Math.random() * 50) + 25 : Math.floor(Math.random() * 20);
+    const completionRate =
+      subpart.status === "completed"
+        ? 100
+        : subpart.status === "in-progress"
+        ? Math.floor(Math.random() * 50) + 25
+        : Math.floor(Math.random() * 20);
 
     const previewData: SubpartPreviewData = {
       id: subpart.id,
@@ -360,10 +422,18 @@ export default function InspectionPage() {
       description: `${subpart.name} for ${modelId.toUpperCase()} model`,
       status: subpart.status,
       specifications: [
-        { name: "Serial Number", value: `SN-${modelId.toUpperCase()}-${subpart.id.toUpperCase()}-12345` },
+        {
+          name: "Serial Number",
+          value: `SN-${modelId.toUpperCase()}-${subpart.id.toUpperCase()}-12345`,
+        },
         { name: "Manufacturer", value: "NE2 Industries" },
         { name: "Weight", value: `${Math.floor(Math.random() * 100) + 50} kg` },
-        { name: "Dimensions", value: `${Math.floor(Math.random() * 100) + 50}x${Math.floor(Math.random() * 50) + 30}x${Math.floor(Math.random() * 30) + 10} cm` },
+        {
+          name: "Dimensions",
+          value: `${Math.floor(Math.random() * 100) + 50}x${
+            Math.floor(Math.random() * 50) + 30
+          }x${Math.floor(Math.random() * 30) + 10} cm`,
+        },
       ],
       completionRate,
     };
@@ -373,7 +443,10 @@ export default function InspectionPage() {
   };
 
   // 서브파트 상태 변경 처리
-  const handleSubpartStatusChange = (id: string, newStatus: "completed" | "in-progress" | "pending") => {
+  const handleSubpartStatusChange = (
+    id: string,
+    newStatus: "completed" | "in-progress" | "pending"
+  ) => {
     console.log(`Changing status of subpart ${id} to ${newStatus}`);
     // 실제 앱에서는 API 호출로 상태 업데이트
   };
@@ -401,14 +474,29 @@ export default function InspectionPage() {
               </TableHeader>
               <TableBody>
                 {inspectionsData.map((inspection) => (
-                  <TableRow key={inspection.id} className={inspection.id === selectedInspectionId ? "bg-muted/50" : ""}>
+                  <TableRow
+                    key={inspection.id}
+                    className={
+                      inspection.id === selectedInspectionId
+                        ? "bg-muted/50"
+                        : ""
+                    }
+                  >
                     <TableCell className="font-medium">
-                      <Link href={`/inspection?inspection=${inspection.id}`} className="hover:underline">
+                      <Link
+                        href={`/inspection?inspection=${inspection.id}`}
+                        className="hover:underline"
+                      >
                         {inspection.name}
                       </Link>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="secondary" className={`${getStatusColor(inspection.status)} text-white`}>
+                      <Badge
+                        variant="secondary"
+                        className={`${getStatusColor(
+                          inspection.status
+                        )} text-white`}
+                      >
                         {inspection.status}
                       </Badge>
                     </TableCell>
@@ -430,7 +518,11 @@ export default function InspectionPage() {
         <Card className="md:col-span-1">
           <CardHeader className="pb-3">
             <CardTitle>Models</CardTitle>
-            {selectedInspection && <CardDescription>{selectedInspection.models.length} models in this inspection</CardDescription>}
+            {selectedInspection && (
+              <CardDescription>
+                {selectedInspection.models.length} models in this inspection
+              </CardDescription>
+            )}
           </CardHeader>
           <div className="p-2 max-h-[400px] overflow-auto">
             {selectedInspection ? (
@@ -444,9 +536,17 @@ export default function InspectionPage() {
                 </TableHeader>
                 <TableBody>
                   {selectedInspection.models.map((model) => (
-                    <TableRow key={model.id} className={model.id === selectedModelId ? "bg-muted/50" : ""}>
+                    <TableRow
+                      key={model.id}
+                      className={
+                        model.id === selectedModelId ? "bg-muted/50" : ""
+                      }
+                    >
                       <TableCell className="font-medium">
-                        <Link href={`/inspection?inspection=${selectedInspectionId}&model=${model.id}`} className="hover:underline">
+                        <Link
+                          href={`/inspection?inspection=${selectedInspectionId}&model=${model.id}`}
+                          className="hover:underline"
+                        >
                           {model.name}
                         </Link>
                       </TableCell>
@@ -457,7 +557,9 @@ export default function InspectionPage() {
                 </TableBody>
               </Table>
             ) : (
-              <div className="p-4 text-center text-muted-foreground">No inspection selected</div>
+              <div className="p-4 text-center text-muted-foreground">
+                No inspection selected
+              </div>
             )}
           </div>
           <CardFooter className="flex justify-end pt-3">
@@ -475,7 +577,11 @@ export default function InspectionPage() {
               <CardTitle>Subparts</CardTitle>
               <div className="flex space-x-2">
                 {selectedSubparts.length > 0 && (
-                  <Button size="sm" variant="outline" onClick={() => setIsUpdateDialogOpen(true)}>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setIsUpdateDialogOpen(true)}
+                  >
                     <IconEdit className="mr-2 h-4 w-4" />
                     Update Status
                   </Button>
@@ -494,7 +600,15 @@ export default function InspectionPage() {
               <div className="px-4 py-2 flex items-center space-x-2">
                 <div className="relative flex-1">
                   <IconSearch className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input type="search" placeholder="Filter subparts..." className="pl-8" value={searchTerm} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)} />
+                  <Input
+                    type="search"
+                    placeholder="Filter subparts..."
+                    className="pl-8"
+                    value={searchTerm}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setSearchTerm(e.target.value)
+                    }
+                  />
                 </div>
                 <Button size="sm" variant="ghost">
                   <IconFilter className="h-4 w-4" />
@@ -508,8 +622,14 @@ export default function InspectionPage() {
                       <TableHead className="w-10">
                         <Checkbox
                           ref={checkboxRef}
-                          onCheckedChange={(checked) => handleSelectAll(checked === true)}
-                          checked={selectedSubparts.length > 0 && selectedSubparts.length === selectedModel.subparts.length}
+                          onCheckedChange={(checked) =>
+                            handleSelectAll(checked === true)
+                          }
+                          checked={
+                            selectedSubparts.length > 0 &&
+                            selectedSubparts.length ===
+                              selectedModel.subparts.length
+                          }
                         />
                       </TableHead>
                       <TableHead>Name</TableHead>
@@ -520,18 +640,40 @@ export default function InspectionPage() {
                   </TableHeader>
                   <TableBody>
                     {filteredSubparts?.map((subpart) => (
-                      <TableRow key={subpart.id} className="cursor-pointer hover:bg-muted/50" onClick={() => handleSubpartClick(subpart, selectedModel.id)}>
+                      <TableRow
+                        key={subpart.id}
+                        className="cursor-pointer hover:bg-muted/50"
+                        onClick={() =>
+                          handleSubpartClick(subpart, selectedModel.id)
+                        }
+                      >
                         <TableCell onClick={(e) => e.stopPropagation()}>
-                          <Checkbox checked={selectedSubparts.includes(subpart.id)} onCheckedChange={(checked) => handleSelectSubpart(subpart.id, checked === true)} />
+                          <Checkbox
+                            checked={selectedSubparts.includes(subpart.id)}
+                            onCheckedChange={(checked) =>
+                              handleSelectSubpart(subpart.id, checked === true)
+                            }
+                          />
                         </TableCell>
-                        <TableCell className="font-medium">{subpart.name}</TableCell>
+                        <TableCell className="font-medium">
+                          {subpart.name}
+                        </TableCell>
                         <TableCell>
-                          <Badge variant="secondary" className={`${getStatusColor(subpart.status)} text-white`}>
+                          <Badge
+                            variant="secondary"
+                            className={`${getStatusColor(
+                              subpart.status
+                            )} text-white`}
+                          >
                             {subpart.status}
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <Badge variant={subpart.inUse ? "default" : "outline"}>{subpart.inUse ? "Active" : "Inactive"}</Badge>
+                          <Badge
+                            variant={subpart.inUse ? "default" : "outline"}
+                          >
+                            {subpart.inUse ? "Active" : "Inactive"}
+                          </Badge>
                         </TableCell>
                         <TableCell>{subpart.lastInspection}</TableCell>
                       </TableRow>
@@ -541,7 +683,8 @@ export default function InspectionPage() {
               </div>
               <CardFooter className="flex justify-between pt-3">
                 <div className="text-sm text-muted-foreground">
-                  {selectedSubparts.length} of {selectedModel.subparts.length} selected
+                  {selectedSubparts.length} of {selectedModel.subparts.length}{" "}
+                  selected
                 </div>
                 <Button size="sm" variant="outline">
                   <IconPlus className="mr-2 h-4 w-4" />
@@ -550,7 +693,11 @@ export default function InspectionPage() {
               </CardFooter>
             </>
           ) : (
-            <div className="p-6 text-center text-muted-foreground">{selectedInspection ? "Select a model to view subparts" : "No inspection selected"}</div>
+            <div className="p-6 text-center text-muted-foreground">
+              {selectedInspection
+                ? "Select a model to view subparts"
+                : "No inspection selected"}
+            </div>
           )}
         </Card>
       </div>
@@ -560,7 +707,10 @@ export default function InspectionPage() {
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Update Subpart Status</DialogTitle>
-            <DialogDescription>Update the status of {selectedSubparts.length} selected subparts. This change will be recorded in the system.</DialogDescription>
+            <DialogDescription>
+              Update the status of {selectedSubparts.length} selected subparts.
+              This change will be recorded in the system.
+            </DialogDescription>
           </DialogHeader>
 
           <div className="grid gap-4 py-4">
@@ -569,7 +719,11 @@ export default function InspectionPage() {
                 Status
               </Label>
               <div className="col-span-3">
-                <Tabs defaultValue={newStatus ? "active" : "inactive"} className="w-full" onValueChange={(v) => setNewStatus(v === "active")}>
+                <Tabs
+                  defaultValue={newStatus ? "active" : "inactive"}
+                  className="w-full"
+                  onValueChange={(v) => setNewStatus(v === "active")}
+                >
                   <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="active">Active</TabsTrigger>
                     <TabsTrigger value="inactive">Inactive</TabsTrigger>
@@ -582,7 +736,14 @@ export default function InspectionPage() {
               <Label htmlFor="name" className="text-right">
                 Your Name
               </Label>
-              <Input id="name" value={updaterName} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setUpdaterName(e.target.value)} className="col-span-3" />
+              <Input
+                id="name"
+                value={updaterName}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setUpdaterName(e.target.value)
+                }
+                className="col-span-3"
+              />
             </div>
 
             <div className="grid grid-cols-4 items-center gap-4">
@@ -592,7 +753,9 @@ export default function InspectionPage() {
               <Textarea
                 id="reason"
                 value={updateReason}
-                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setUpdateReason(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                  setUpdateReason(e.target.value)
+                }
                 className="col-span-3"
                 placeholder="Why are you changing the status of these subparts?"
               />
@@ -603,7 +766,11 @@ export default function InspectionPage() {
             <DialogClose asChild>
               <Button variant="outline">Cancel</Button>
             </DialogClose>
-            <Button type="submit" onClick={handleUpdateStatus} disabled={!updaterName || !updateReason}>
+            <Button
+              type="submit"
+              onClick={handleUpdateStatus}
+              disabled={!updaterName || !updateReason}
+            >
               <IconCheck className="mr-2 h-4 w-4" />
               Save Changes
             </Button>
@@ -612,7 +779,12 @@ export default function InspectionPage() {
       </Dialog>
 
       {/* 모달 추가 */}
-      <SubpartPreviewModal subpart={selectedSubpart} open={isPreviewModalOpen} onOpenChange={setIsPreviewModalOpen} onStatusChange={handleSubpartStatusChange} />
+      <SubpartPreviewModal
+        subpart={selectedSubpart}
+        open={isPreviewModalOpen}
+        onOpenChange={setIsPreviewModalOpen}
+        onStatusChange={handleSubpartStatusChange}
+      />
     </div>
   );
 }

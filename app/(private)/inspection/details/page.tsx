@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useGetCustomer } from "@/lib/hooks/useCustomer";
 
 // 데이터 정의 (원래는 실제 데이터나 API에서 가져와야 함)
 interface SubpartDetail {
@@ -45,10 +46,12 @@ const subpartsDetails: Record<string, SubpartDetail> = {
   engine: {
     id: "engine",
     name: "Engine System",
-    description: "The primary power generation unit responsible for converting fuel into mechanical energy.",
+    description:
+      "The primary power generation unit responsible for converting fuel into mechanical energy.",
     status: "completed",
     lastInspection: "2023-12-05",
-    notes: "Engine is in excellent condition. Regular maintenance has been performed according to schedule.",
+    notes:
+      "Engine is in excellent condition. Regular maintenance has been performed according to schedule.",
     specifications: {
       manufacturer: "PowerTech Industries",
       serialNumber: "PT-2023-11456",
@@ -89,10 +92,12 @@ const subpartsDetails: Record<string, SubpartDetail> = {
   chassis: {
     id: "chassis",
     name: "Chassis Structure",
-    description: "The framework that supports all components of the vehicle and provides structural integrity.",
+    description:
+      "The framework that supports all components of the vehicle and provides structural integrity.",
     status: "in-progress",
     lastInspection: "2023-12-10",
-    notes: "Inspection in progress. Initial assessment shows normal wear patterns.",
+    notes:
+      "Inspection in progress. Initial assessment shows normal wear patterns.",
     specifications: {
       manufacturer: "FrameWorks Inc",
       serialNumber: "FW-CH-9823",
@@ -182,7 +187,10 @@ export default function SubpartDetailsPage() {
             <CardTitle>Subpart Not Found</CardTitle>
           </CardHeader>
           <CardContent>
-            <p>The requested subpart could not be found. Please check the URL and try again.</p>
+            <p>
+              The requested subpart could not be found. Please check the URL and
+              try again.
+            </p>
             <Button asChild className="mt-4">
               <Link href="/inspection">Back to Inspection Dashboard</Link>
             </Button>
@@ -203,9 +211,17 @@ export default function SubpartDetailsPage() {
         </div>
 
         <div className="flex items-center space-x-3">
-          <span className={`font-medium ${getStatusColor(subpartDetails.status)}`}>Status: {subpartDetails.status}</span>
+          <span
+            className={`font-medium ${getStatusColor(subpartDetails.status)}`}
+          >
+            Status: {subpartDetails.status}
+          </span>
           <Button asChild variant="outline">
-            <Link href={`/inspection?inspection=${inspectionId}&model=${modelId}`}>Back to Inspection</Link>
+            <Link
+              href={`/inspection?inspection=${inspectionId}&model=${modelId}`}
+            >
+              Back to Inspection
+            </Link>
           </Button>
         </div>
       </div>
@@ -266,8 +282,12 @@ export default function SubpartDetailsPage() {
                 <div className="mt-6">
                   <h3 className="font-medium mb-2">Images</h3>
                   <div className="grid grid-cols-2 gap-2">
-                    <div className="aspect-square bg-muted rounded flex items-center justify-center">Image 1</div>
-                    <div className="aspect-square bg-muted rounded flex items-center justify-center">Image 2</div>
+                    <div className="aspect-square bg-muted rounded flex items-center justify-center">
+                      Image 1
+                    </div>
+                    <div className="aspect-square bg-muted rounded flex items-center justify-center">
+                      Image 2
+                    </div>
                   </div>
                 </div>
               </CardContent>
@@ -288,9 +308,15 @@ export default function SubpartDetailsPage() {
                       <h3 className="font-medium">{item.action}</h3>
                       <span className="text-muted-foreground">{item.date}</span>
                     </div>
-                    <p className="text-sm mb-1">Technician: {item.technician}</p>
-                    <p className="text-sm text-muted-foreground">{item.notes}</p>
-                    {index < subpartDetails.history.length - 1 && <Separator className="mt-4" />}
+                    <p className="text-sm mb-1">
+                      Technician: {item.technician}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {item.notes}
+                    </p>
+                    {index < subpartDetails.history.length - 1 && (
+                      <Separator className="mt-4" />
+                    )}
                   </div>
                 ))}
               </div>
@@ -310,11 +336,17 @@ export default function SubpartDetailsPage() {
                     <div key={issue.id} className="border rounded-md p-4">
                       <div className="flex justify-between mb-2">
                         <h3 className="font-medium">{issue.description}</h3>
-                        <span className={`${getSeverityColor(issue.severity)}`}>{issue.severity.charAt(0).toUpperCase() + issue.severity.slice(1)} Severity</span>
+                        <span className={`${getSeverityColor(issue.severity)}`}>
+                          {issue.severity.charAt(0).toUpperCase() +
+                            issue.severity.slice(1)}{" "}
+                          Severity
+                        </span>
                       </div>
                       <div className="flex justify-between text-sm">
                         <span>Reported: {issue.reportedDate}</span>
-                        <span className={`${getStatusColor(issue.status)}`}>Status: {issue.status}</span>
+                        <span className={`${getStatusColor(issue.status)}`}>
+                          Status: {issue.status}
+                        </span>
                       </div>
                     </div>
                   ))}
