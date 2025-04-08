@@ -16,6 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogFooter,
 } from "@/components/ui/dialog";
 
 import { Button } from "@/components/ui/button";
@@ -104,6 +105,8 @@ export default function InspectionPage() {
   >({});
   const { mutate: updateSubpartsStatus, isPending: isUpdating } =
     useUpdateSubpartsStatus();
+  const [isSaveDialogOpen, setIsSaveDialogOpen] = React.useState(false);
+  const [isConfirmDialogOpen, setIsConfirmDialogOpen] = React.useState(false);
 
   // URL에서 파라미터 가져오기
   const customerId = searchParams.get("customerId") || "all";
@@ -284,6 +287,45 @@ export default function InspectionPage() {
     });
   };
 
+  const hasChanges = Object.entries(editedSubparts).some(
+    ([id, inUse]) =>
+      subpartData?.items.find((item) => item.id === parseInt(id))?.inUse !==
+      inUse
+  );
+
+  const handleEditModeToggle = () => {
+    if (!isEditMode) {
+      // 수정 모드 진입 시 현재 상태로 초기화
+      const initialStates =
+        subpartData?.items.reduce((acc, subpart) => {
+          acc[subpart.id] = subpart.inUse;
+          return acc;
+        }, {} as Record<number, number>) || {};
+      setEditedSubparts(initialStates);
+
+      // isMain이 1인 담당자 자동 선택
+      const mainContacts =
+        customerContacts?.contacts
+          ?.filter((contact) => contact.isMain === 1)
+          .map((contact) => contact.personEmail) || [];
+      setSelectedContacts(mainContacts);
+    } else {
+      // 수정 모드 종료 시 초기화
+      setEditedSubparts({});
+      setSelectedContacts([]);
+    }
+    setIsEditMode(!isEditMode);
+  };
+
+  const handleSaveClick = () => {
+    setIsConfirmDialogOpen(true);
+  };
+
+  const handleSaveConfirm = () => {
+    handleSaveChanges();
+    setIsConfirmDialogOpen(false);
+  };
+
   const handleSaveChanges = () => {
     if (!selectedModel || !customerData?.customers[0]?.id) return;
 
@@ -313,24 +355,6 @@ export default function InspectionPage() {
         },
       }
     );
-  };
-
-  // 수정 모드 진입 시 현재 상태 초기화
-  const handleEditModeToggle = () => {
-    if (!isEditMode) {
-      // 수정 모드 진입 시 현재 상태로 초기화
-      const initialStates =
-        subpartData?.items.reduce((acc, subpart) => {
-          acc[subpart.id] = subpart.inUse;
-          return acc;
-        }, {} as Record<number, number>) || {};
-      setEditedSubparts(initialStates);
-    } else {
-      // 수정 모드 종료 시 초기화
-      setEditedSubparts({});
-      setSelectedContacts([]);
-    }
-    setIsEditMode(!isEditMode);
   };
 
   return (
@@ -672,8 +696,8 @@ export default function InspectionPage() {
                             {isEditMode && (
                               <Button
                                 variant="default"
-                                onClick={handleSaveChanges}
-                                disabled={isUpdating}
+                                onClick={handleSaveClick}
+                                disabled={!hasChanges || isUpdating}
                               >
                                 {isUpdating ? "저장 중..." : "저장"}
                               </Button>
@@ -683,9 +707,14 @@ export default function InspectionPage() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() =>
-                            setIsSubpartFullView(!isSubpartFullView)
-                          }
+                          onClick={() => {
+                            setIsSubpartFullView(!isSubpartFullView);
+                            if (!isSubpartFullView) {
+                              setIsEditMode(false);
+                              setEditedSubparts({});
+                              setSelectedContacts([]);
+                            }
+                          }}
                         >
                           {isSubpartFullView ? (
                             <IconMinimize className="h-4 w-4" />
@@ -1033,6 +1062,88 @@ export default function InspectionPage() {
               </div>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* 수정사항 확인 다이얼로그 */}
+      <Dialog open={isConfirmDialogOpen} onOpenChange={setIsConfirmDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>수정사항 확인</DialogTitle>
+            <DialogDescription>
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-medium mb-2">수정된 부품 목록:</h4>
+                  <ul className="list-disc pl-4 space-y-1">
+                    {Object.entries(editedSubparts)
+                      .filter(
+                        ([id, inUse]) =>
+                          subpartData?.items.find(
+                            (item) => item.id === parseInt(id)
+                          )?.inUse !== inUse
+                      )
+                      .map(([id, inUse]) => {
+                        const subpart = subpartData?.items.find(
+                          (item) => item.id === parseInt(id)
+                        );
+                        return (
+                          <li key={id}>
+                            {subpart?.name}:{" "}
+                            {subpart?.inUse === 1 ? "사용중" : "미사용중"} →{" "}
+                            {inUse === 1 ? "사용중" : "미사용중"}
+                          </li>
+                        );
+                      })}
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-medium mb-2">알림 받을 담당자:</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedContacts.map((email) => {
+                      const contact = customerContacts?.contacts?.find(
+                        (c) => c.personEmail === email
+                      );
+                      return (
+                        <Badge key={email} variant="secondary">
+                          {contact?.person} ({email})
+                        </Badge>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsConfirmDialogOpen(false)}
+            >
+              취소
+            </Button>
+            <Button onClick={handleSaveConfirm}>저장</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* 저장 확인 다이얼로그 */}
+      <Dialog open={isSaveDialogOpen} onOpenChange={setIsSaveDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>수정사항 저장</DialogTitle>
+            <DialogDescription>
+              선택한 수정사항을 저장하시겠습니까?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsSaveDialogOpen(false)}
+            >
+              취소
+            </Button>
+            <Button onClick={handleSaveConfirm}>확인</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
