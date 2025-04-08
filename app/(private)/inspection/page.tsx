@@ -64,6 +64,27 @@ interface Subpart {
   id: number;
   name: string;
   inUse: number;
+  description?: string;
+  specifications?: {
+    manufacturer: string;
+    serialNumber: string;
+    manufactureDate: string;
+    weight: string;
+    dimensions: string;
+  };
+  inspectionHistory?: {
+    date: string;
+    action: string;
+    technician: string;
+    notes: string;
+  }[];
+  issues?: {
+    id: string;
+    description: string;
+    severity: "low" | "medium" | "high" | "critical";
+    reportedDate: string;
+    status: "open" | "in-progress" | "resolved";
+  }[];
 }
 
 // 상태에 따른 색상 반환 함수
@@ -88,6 +109,22 @@ function getInUseStatusColor(inUse: number | undefined) {
     return "bg-green-400 text-white"; // 사용중 - 밝은 녹색
   } else {
     return "bg-gray-400 text-white"; // 미사용중 - 회색
+  }
+}
+
+// 심각도에 따른 색상 반환 함수
+function getSeverityColor(severity: string) {
+  switch (severity) {
+    case "low":
+      return "text-green-500";
+    case "medium":
+      return "text-amber-500";
+    case "high":
+      return "text-orange-500";
+    case "critical":
+      return "text-red-500";
+    default:
+      return "text-gray-500";
   }
 }
 
@@ -705,12 +742,38 @@ export default function InspectionPage() {
               <div className="col-span-3">{selectedModelDetail?.name}</div>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
+              <div className="col-span-1 font-medium">상태</div>
+              <div className="col-span-3">{selectedModelDetail?.status}</div>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
               <div className="col-span-1 font-medium">부품 수</div>
               <div className="col-span-3">
                 {selectedModelDetail?.subpartCount}
               </div>
             </div>
-            {/* 추가 상세 정보가 있다면 여기에 추가 */}
+            <div className="grid grid-cols-4 items-center gap-4">
+              <div className="col-span-1 font-medium">고객사 ID</div>
+              <div className="col-span-3">
+                {selectedModelDetail?.customerId}
+              </div>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <div className="col-span-1 font-medium">생성일</div>
+              <div className="col-span-3">{selectedModelDetail?.createdAt}</div>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <div className="col-span-1 font-medium">수정일</div>
+              <div className="col-span-3">{selectedModelDetail?.updatedAt}</div>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <div className="col-span-1 font-medium">검출 영역</div>
+              <div className="col-span-3">
+                TL: ({selectedModelDetail?.detectionRegionTL.x},{" "}
+                {selectedModelDetail?.detectionRegionTL.y}) / BR: (
+                {selectedModelDetail?.detectionRegionBR.x},{" "}
+                {selectedModelDetail?.detectionRegionBR.y})
+              </div>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
@@ -741,7 +804,56 @@ export default function InspectionPage() {
                 </span>
               </div>
             </div>
-            {/* 추가 상세 정보가 있다면 여기에 추가 */}
+            <div className="grid grid-cols-4 items-center gap-4">
+              <div className="col-span-1 font-medium">설명</div>
+              <div className="col-span-3">{selectedSubpartDetail?.desc}</div>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <div className="col-span-1 font-medium">YOLO ID</div>
+              <div className="col-span-3">{selectedSubpartDetail?.yoloID}</div>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <div className="col-span-1 font-medium">색상</div>
+              <div className="col-span-3">
+                <div className="flex items-center gap-2">
+                  <div
+                    className="w-4 h-4 rounded-full"
+                    style={{ backgroundColor: selectedSubpartDetail?.color }}
+                  />
+                  <span>{selectedSubpartDetail?.color}</span>
+                </div>
+              </div>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <div className="col-span-1 font-medium">객체 수</div>
+              <div className="col-span-3">
+                {selectedSubpartDetail?.numObjects}
+              </div>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <div className="col-span-1 font-medium">임계값</div>
+              <div className="col-span-3">
+                {selectedSubpartDetail?.threshold}
+              </div>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <div className="col-span-1 font-medium">히스토그램 사용</div>
+              <div className="col-span-3">
+                {selectedSubpartDetail?.useHistogram === 1 ? "사용" : "미사용"}
+              </div>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <div className="col-span-1 font-medium">생성일</div>
+              <div className="col-span-3">
+                {selectedSubpartDetail?.createdAt}
+              </div>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <div className="col-span-1 font-medium">수정일</div>
+              <div className="col-span-3">
+                {selectedSubpartDetail?.updatedAt}
+              </div>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

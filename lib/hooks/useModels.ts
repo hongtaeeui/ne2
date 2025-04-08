@@ -24,7 +24,21 @@ import axiosClient from "../axiosClient";
 export interface Model {
   id: number;
   name: string;
+  customerId: number;
+  seq: number | null;
   status: string;
+  desc: string | null;
+  createdAt: string;
+  updatedAt: string;
+  detectionRegionTL: {
+    x: number;
+    y: number;
+  };
+  detectionRegionBR: {
+    x: number;
+    y: number;
+  };
+  RGBKMeansClusterWeightFile: string | null;
   subpartCount: number;
 }
 
