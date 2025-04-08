@@ -6,6 +6,8 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const page = searchParams.get("page") || "1";
     const limit = searchParams.get("limit") || "10";
+    const customerId = searchParams.get("customerId");
+
     // Authorization 헤더 가져오기
     const authHeader = request.headers.get("authorization");
 
@@ -17,8 +19,9 @@ export async function GET(request: NextRequest) {
     }
 
     // 외부 API 호출
-    const response = await externalAxiosClient.get("/v1/customer", {
+    const response = await externalAxiosClient.get("/v1/customer/customer", {
       params: {
+        ...(customerId && { customerId: parseInt(customerId) }),
         page: parseInt(page),
         limit: parseInt(limit),
       },
@@ -26,8 +29,6 @@ export async function GET(request: NextRequest) {
         Authorization: authHeader,
       },
     });
-
-    // console.log("response", response.data);
 
     // 응답 데이터 검증 및 변환
     const { customers, total } = response.data;
@@ -40,9 +41,9 @@ export async function GET(request: NextRequest) {
       total: total || customers.length,
     });
   } catch (error) {
-    console.error("Customer API Error:", error);
+    console.error("Customer User API Error:", error);
     return NextResponse.json(
-      { error: "Failed to fetch customer data" },
+      { error: "Failed to fetch customer user data" },
       { status: 500 }
     );
   }

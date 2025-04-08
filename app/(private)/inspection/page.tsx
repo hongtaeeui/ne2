@@ -25,7 +25,11 @@ import {
 } from "@/components/ui/table";
 import { useGetInspection } from "@/lib/hooks/useInspection";
 import type { Inspection } from "@/lib/hooks/useInspection";
-import { useGetCustomer } from "@/lib/hooks/useCustomer";
+import {
+  useGetContactList,
+  useGetCustomer,
+  useGetCustomerList,
+} from "@/lib/hooks/useCustomer";
 import {
   Select,
   SelectContent,
@@ -119,6 +123,21 @@ export default function InspectionPage() {
 
   console.log("subpartData", subpartData);
   console.log("isSubpartLoading", isSubpartLoading);
+
+  //  고객사 목록 조회
+  const { data: allCustomers } = useGetCustomer({ page, limit });
+  console.log("allCustomers", allCustomers);
+
+  // 특정 고객의 사용자 목록 조회
+  const { data: customerUsers } = useGetCustomerList({
+    customerId,
+    page,
+    limit,
+  });
+  console.log("customerUsers", customerUsers);
+  // 고객 연락처 목록 조회
+  const { data: customerContacts } = useGetContactList(customerId);
+  console.log("customerContacts", customerContacts);
 
   // 페이지 변경 핸들러
   const handlePageChange = (newPage: number) => {
@@ -312,7 +331,7 @@ export default function InspectionPage() {
                             {filteredInspections.map(
                               (inspection: Inspection) => (
                                 <TableRow
-                                  key={inspection.name}
+                                  key={inspection.id}
                                   className={`cursor-pointer hover:bg-gray-100 ${
                                     selectedInspection === inspection.id
                                       ? "bg-gray-100"

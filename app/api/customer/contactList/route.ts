@@ -4,8 +4,8 @@ import { externalAxiosClient } from "@/lib/axiosClient";
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const page = searchParams.get("page") || "1";
-    const limit = searchParams.get("limit") || "10";
+    const customerId = searchParams.get("customerId");
+
     // Authorization 헤더 가져오기
     const authHeader = request.headers.get("authorization");
 
@@ -17,32 +17,28 @@ export async function GET(request: NextRequest) {
     }
 
     // 외부 API 호출
-    const response = await externalAxiosClient.get("/v1/customer", {
+    const response = await externalAxiosClient.get("/v1/customer/contactList", {
       params: {
-        page: parseInt(page),
-        limit: parseInt(limit),
+        ...(customerId && { customerId: parseInt(customerId) }),
       },
       headers: {
         Authorization: authHeader,
       },
     });
 
-    // console.log("response", response.data);
-
     // 응답 데이터 검증 및 변환
-    const { customers, total } = response.data;
-    if (!customers || !Array.isArray(customers)) {
+    const contacts = response.data;
+    if (!contacts || !Array.isArray(contacts)) {
       throw new Error("Invalid response format from external API");
     }
 
     return NextResponse.json({
-      customers,
-      total: total || customers.length,
+      contacts,
     });
   } catch (error) {
-    console.error("Customer API Error:", error);
+    console.error("Customer Contact API Error:", error);
     return NextResponse.json(
-      { error: "Failed to fetch customer data" },
+      { error: "Failed to fetch customer contact data" },
       { status: 500 }
     );
   }
