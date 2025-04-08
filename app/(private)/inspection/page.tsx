@@ -7,6 +7,7 @@ import {
   IconPlus,
   IconX,
   IconMaximize,
+  IconRefresh,
 } from "@tabler/icons-react";
 import { debounce } from "lodash";
 import { useCallback, useMemo, useState } from "react";
@@ -111,6 +112,7 @@ export default function InspectionPage() {
   const [editedSubparts, setEditedSubparts] = useState<Record<number, number>>(
     {}
   );
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const { mutate: updateSubpartsStatus, isPending: isUpdating } =
     useUpdateSubpartsStatus();
   const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
@@ -365,6 +367,19 @@ export default function InspectionPage() {
     );
   };
 
+  // 데이터 새로고침 함수
+  const handleRefresh = useCallback(() => {
+    setIsRefreshing(true);
+    // 현재 URL 파라미터를 유지하면서 페이지 새로고침
+    const currentParams = new URLSearchParams(searchParams);
+    router.refresh();
+
+    // 시각적 피드백을 위해 1초 후 리프레싱 상태 해제
+    setTimeout(() => {
+      setIsRefreshing(false);
+    }, 1000);
+  }, [searchParams, router]);
+
   return (
     <div className="container mx-auto pt-6 px-4">
       {/* Breadcrumb */}
@@ -386,10 +401,25 @@ export default function InspectionPage() {
 
       <Card className="max-w-full">
         <CardHeader>
-          <CardTitle>Inspection Dashboard</CardTitle>
-          <CardDescription>
-            {paginatedData?.pagination.total || 0} inspections found
-          </CardDescription>
+          <div className="flex justify-between items-center">
+            <div>
+              <CardTitle>Inspection Dashboard</CardTitle>
+              <CardDescription>
+                {paginatedData?.pagination.total || 0} inspections found
+              </CardDescription>
+            </div>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              className="md:hidden"
+            >
+              <IconRefresh
+                className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
+              />
+            </Button>
+          </div>
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div className="flex flex-col md:flex-row items-start md:items-center gap-4 w-full md:w-auto">
               <Select value={customerId} onValueChange={handleCustomerChange}>
@@ -426,27 +456,40 @@ export default function InspectionPage() {
                 </SelectContent>
               </Select>
             </div>
-            {/* 비활성화 처리 */}
-            {/* 툴팁 추가 */}
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div>
-                    <Button
-                      onClick={() => router.push("/inspection/new")}
-                      disabled={true}
-                      className="pointer-events-none" // 클릭은 막지만 툴팁은 가능하게 함
-                    >
-                      <IconPlus className="mr-2 h-4 w-4" />
-                      New Inspection
-                    </Button>
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>준비중입니다.</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handleRefresh}
+                disabled={isRefreshing}
+                className="hidden md:flex"
+              >
+                <IconRefresh
+                  className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
+                />
+              </Button>
+              {/* 비활성화 처리 */}
+              {/* 툴팁 추가 */}
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div>
+                      <Button
+                        onClick={() => router.push("/inspection/new")}
+                        disabled={true}
+                        className="pointer-events-none" // 클릭은 막지만 툴팁은 가능하게 함
+                      >
+                        <IconPlus className="mr-2 h-4 w-4" />
+                        New Inspection
+                      </Button>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>준비중입니다.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -464,7 +507,15 @@ export default function InspectionPage() {
             >
               <div
                 className={`${
-                  selectedInspection ? "hidden lg:block" : "block"
+                  selectedInspection && selectedModel
+                    ? "hidden lg:block"
+                    : selectedInspection &&
+                      !isModelListVisible &&
+                      !selectedModel
+                    ? "block"
+                    : selectedInspection
+                    ? "hidden lg:block"
+                    : "block"
                 }`}
               >
                 <div className="rounded-md border">
@@ -602,6 +653,10 @@ export default function InspectionPage() {
                           onClick={() => {
                             setIsModelListVisible(false);
                             setIsModelFullView(false);
+                            // 모바일에서는 선택된 인스펙션 초기화
+                            if (window.innerWidth < 1024) {
+                              setSelectedInspection(null);
+                            }
                           }}
                         >
                           <IconX className="h-4 w-4" />
@@ -801,6 +856,12 @@ export default function InspectionPage() {
                               setIsEditMode(false);
                               setEditedSubparts({});
                               setSelectedContacts([]);
+                              // 모바일에서는 선택된 모델 초기화
+                              if (window.innerWidth < 1024) {
+                                setSelectedModel(null);
+                                // 인스펙션 리스트가 표시될 수 있도록 모델 리스트 표시
+                                setIsModelListVisible(true);
+                              }
                             }
                           }}
                         >
@@ -819,6 +880,12 @@ export default function InspectionPage() {
                             setIsEditMode(false);
                             setEditedSubparts({});
                             setSelectedContacts([]);
+                            // 모바일에서는 선택된 모델 초기화
+                            if (window.innerWidth < 1024) {
+                              setSelectedModel(null);
+                              // 인스펙션 리스트가 표시될 수 있도록 모델 리스트 표시
+                              setIsModelListVisible(true);
+                            }
                           }}
                         >
                           <IconX className="h-4 w-4" />
