@@ -416,6 +416,9 @@ export default function InspectionPage() {
                       <TableHeader>
                         <TableRow>
                           <TableHead>Name</TableHead>
+                          <TableHead className="hidden md:table-cell">
+                            고객사
+                          </TableHead>
                           <TableHead className="text-right">
                             Model Count
                           </TableHead>
@@ -442,6 +445,12 @@ export default function InspectionPage() {
                                   }
                                 >
                                   <TableCell>{inspection.name}</TableCell>
+                                  <TableCell className="hidden md:table-cell">
+                                    {customerData?.customers.find(
+                                      (customer) =>
+                                        customer.id === inspection.customerId
+                                    )?.name || "알 수 없음"}
+                                  </TableCell>
                                   <TableCell className="text-right">
                                     {inspection.modelCount}
                                   </TableCell>
@@ -752,9 +761,11 @@ export default function InspectionPage() {
               </div>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <div className="col-span-1 font-medium">고객사 ID</div>
+              <div className="col-span-1 font-medium">고객사</div>
               <div className="col-span-3">
-                {selectedModelDetail?.customerId}
+                {customerData?.customers.find(
+                  (customer) => customer.id === selectedModelDetail?.customerId
+                )?.name || "알 수 없음"}
               </div>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
