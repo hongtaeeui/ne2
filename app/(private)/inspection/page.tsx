@@ -458,7 +458,11 @@ export default function InspectionPage() {
                   }`}
                 >
                   <Card
-                    className={isModelFullView ? "fixed inset-0 z-50 m-4" : ""}
+                    className={
+                      isModelFullView
+                        ? "fixed inset-0 z-50 m-4 transition-all duration-300"
+                        : "transition-all duration-300"
+                    }
                   >
                     <CardHeader className="flex flex-row items-center justify-between">
                       <div className="flex items-center space-x-4">
@@ -486,7 +490,10 @@ export default function InspectionPage() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => setIsModelListVisible(false)}
+                          onClick={() => {
+                            setIsModelListVisible(false);
+                            setIsModelFullView(false);
+                          }}
                         >
                           <IconX className="h-4 w-4" />
                         </Button>
@@ -568,7 +575,9 @@ export default function InspectionPage() {
                 >
                   <Card
                     className={
-                      isSubpartFullView ? "fixed inset-0 z-50 m-4" : ""
+                      isSubpartFullView
+                        ? "fixed inset-0 z-50 m-4 transition-all duration-300"
+                        : "transition-all duration-300"
                     }
                   >
                     <CardHeader className="flex flex-row items-center justify-between">
@@ -597,7 +606,10 @@ export default function InspectionPage() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => setIsSubpartListVisible(false)}
+                          onClick={() => {
+                            setIsSubpartListVisible(false);
+                            setIsSubpartFullView(false);
+                          }}
                         >
                           <IconX className="h-4 w-4" />
                         </Button>

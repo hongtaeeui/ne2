@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useGetCustomer } from "@/lib/hooks/useCustomer";
 
 // 데이터 정의 (원래는 실제 데이터나 API에서 가져와야 함)
 interface SubpartDetail {
