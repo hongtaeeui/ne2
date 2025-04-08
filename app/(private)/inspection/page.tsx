@@ -464,11 +464,13 @@ export default function InspectionPage() {
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Name</TableHead>
-                          <TableHead className="hidden md:table-cell">
+                          <TableHead className="w-[40%] text-left">
+                            Name
+                          </TableHead>
+                          <TableHead className="w-[40%] hidden md:table-cell text-left">
                             고객사
                           </TableHead>
-                          <TableHead className="text-right">
+                          <TableHead className="w-[20%] text-center">
                             Model Count
                           </TableHead>
                         </TableRow>
@@ -493,14 +495,16 @@ export default function InspectionPage() {
                                     handleInspectionClick(inspection.id)
                                   }
                                 >
-                                  <TableCell>{inspection.name}</TableCell>
-                                  <TableCell className="hidden md:table-cell">
+                                  <TableCell className="w-[40%] text-left">
+                                    {inspection.name}
+                                  </TableCell>
+                                  <TableCell className="w-[40%] hidden md:table-cell text-left">
                                     {customerData?.customers.find(
                                       (customer) =>
                                         customer.id === inspection.customerId
                                     )?.name || "알 수 없음"}
                                   </TableCell>
-                                  <TableCell className="text-right">
+                                  <TableCell className="w-[20%] text-center">
                                     {inspection.modelCount}
                                   </TableCell>
                                 </TableRow>
@@ -597,14 +601,65 @@ export default function InspectionPage() {
                     <CardContent
                       className={isModelFullView ? "h-[calc(100vh-150px)]" : ""}
                     >
+                      {isModelFullView && (
+                        <div className="mb-4 p-4 border rounded-lg bg-gray-50">
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <div className="text-sm font-medium text-gray-500">
+                                고객사
+                              </div>
+                              <div className="text-base">
+                                {customerData?.customers.find(
+                                  (customer) =>
+                                    customer.id ===
+                                    selectedModelDetail?.customerId
+                                )?.name || "알 수 없음"}
+                              </div>
+                            </div>
+                            <div>
+                              <div className="text-sm font-medium text-gray-500">
+                                인스펙션
+                              </div>
+                              <div className="text-base">
+                                {paginatedData?.inspections.find(
+                                  (inspection) =>
+                                    inspection.id === selectedInspection
+                                )?.name || "알 수 없음"}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                       <div className="rounded-md border">
                         <div className="relative w-full">
                           <Table>
                             <TableHeader>
                               <TableRow>
-                                <TableHead>모델명</TableHead>
-                                <TableHead>부품 수</TableHead>
-                                <TableHead>상세보기</TableHead>
+                                <TableHead className="w-[30%] text-left">
+                                  모델명
+                                </TableHead>
+                                <TableHead className="w-[10%] text-center">
+                                  부품 수
+                                </TableHead>
+                                {isModelFullView && (
+                                  <>
+                                    <TableHead className="w-[10%] text-center">
+                                      상태
+                                    </TableHead>
+                                    <TableHead className="w-[20%] text-left">
+                                      고객사
+                                    </TableHead>
+                                    <TableHead className="w-[10%] text-center">
+                                      생성일
+                                    </TableHead>
+                                    <TableHead className="w-[10%] text-center">
+                                      수정일
+                                    </TableHead>
+                                  </>
+                                )}
+                                <TableHead className="w-[10%] text-center">
+                                  상세보기
+                                </TableHead>
                               </TableRow>
                             </TableHeader>
                           </Table>
@@ -631,11 +686,32 @@ export default function InspectionPage() {
                                       }`}
                                       onClick={() => handleModelClick(model.id)}
                                     >
-                                      <TableCell>{model.name}</TableCell>
-                                      <TableCell>
+                                      <TableCell className="w-[30%] text-left">
+                                        {model.name}
+                                      </TableCell>
+                                      <TableCell className="w-[10%] text-center">
                                         {model.subpartCount}
                                       </TableCell>
-                                      <TableCell>
+                                      {isModelFullView && (
+                                        <>
+                                          <TableCell className="w-[10%] text-center">
+                                            {model.status}
+                                          </TableCell>
+                                          <TableCell className="w-[20%] text-left">
+                                            {customerData?.customers.find(
+                                              (customer) =>
+                                                customer.id === model.customerId
+                                            )?.name || "알 수 없음"}
+                                          </TableCell>
+                                          <TableCell className="w-[10%] text-center">
+                                            {model.createdAt}
+                                          </TableCell>
+                                          <TableCell className="w-[10%] text-center">
+                                            {model.updatedAt}
+                                          </TableCell>
+                                        </>
+                                      )}
+                                      <TableCell className="w-[10%] text-center">
                                         <Button
                                           variant="outline"
                                           size="sm"
@@ -742,6 +818,45 @@ export default function InspectionPage() {
                         isSubpartFullView ? "h-[calc(100vh-150px)]" : ""
                       }
                     >
+                      {isSubpartFullView && (
+                        <div className="mb-4 p-4 border rounded-lg bg-gray-50">
+                          <div className="grid grid-cols-3 gap-4">
+                            <div>
+                              <div className="text-sm font-medium text-gray-500">
+                                고객사
+                              </div>
+                              <div className="text-base">
+                                {customerData?.customers.find(
+                                  (customer) =>
+                                    customer.id ===
+                                    selectedModelDetail?.customerId
+                                )?.name || "알 수 없음"}
+                              </div>
+                            </div>
+                            <div>
+                              <div className="text-sm font-medium text-gray-500">
+                                인스펙션
+                              </div>
+                              <div className="text-base">
+                                {paginatedData?.inspections.find(
+                                  (inspection) =>
+                                    inspection.id === selectedInspection
+                                )?.name || "알 수 없음"}
+                              </div>
+                            </div>
+                            <div>
+                              <div className="text-sm font-medium text-gray-500">
+                                모델
+                              </div>
+                              <div className="text-base">
+                                {modelData?.models.find(
+                                  (model) => model.id === selectedModel
+                                )?.name || "알 수 없음"}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                       {isSubpartFullView && isEditMode && (
                         <div className="mb-4 p-4 border rounded-lg">
                           <div className="space-y-4">
@@ -837,9 +952,37 @@ export default function InspectionPage() {
                           <Table>
                             <TableHeader>
                               <TableRow>
-                                <TableHead>부품명</TableHead>
-                                <TableHead>사용여부</TableHead>
-                                <TableHead>상세보기</TableHead>
+                                <TableHead className="w-[20%] text-left">
+                                  부품명
+                                </TableHead>
+                                <TableHead className="w-[10%] text-center">
+                                  사용여부
+                                </TableHead>
+                                {isSubpartFullView && (
+                                  <>
+                                    <TableHead className="w-[20%] text-left">
+                                      설명
+                                    </TableHead>
+                                    <TableHead className="w-[10%] text-center">
+                                      YOLO ID
+                                    </TableHead>
+                                    <TableHead className="w-[10%] text-center">
+                                      객체 수
+                                    </TableHead>
+                                    <TableHead className="w-[10%] text-center">
+                                      임계값
+                                    </TableHead>
+                                    <TableHead className="w-[10%] text-center">
+                                      생성일
+                                    </TableHead>
+                                    <TableHead className="w-[10%] text-center">
+                                      수정일
+                                    </TableHead>
+                                  </>
+                                )}
+                                <TableHead className="w-[10%] text-center">
+                                  상세보기
+                                </TableHead>
                               </TableRow>
                             </TableHeader>
                           </Table>
@@ -858,10 +1001,12 @@ export default function InspectionPage() {
                                 <TableBody>
                                   {subpartData.items.map((subpart) => (
                                     <TableRow key={subpart.id}>
-                                      <TableCell>{subpart.name}</TableCell>
-                                      <TableCell>
+                                      <TableCell className="w-[20%] text-left">
+                                        {subpart.name}
+                                      </TableCell>
+                                      <TableCell className="w-[10%] text-center">
                                         {isSubpartFullView && isEditMode ? (
-                                          <div className="flex items-center space-x-2">
+                                          <div className="flex items-center justify-center space-x-2">
                                             <Switch
                                               checked={
                                                 editedSubparts[subpart.id] === 1
@@ -900,7 +1045,29 @@ export default function InspectionPage() {
                                           </span>
                                         )}
                                       </TableCell>
-                                      <TableCell>
+                                      {isSubpartFullView && (
+                                        <>
+                                          <TableCell className="w-[20%] text-left">
+                                            {subpart.desc}
+                                          </TableCell>
+                                          <TableCell className="w-[10%] text-center">
+                                            {subpart.yoloID}
+                                          </TableCell>
+                                          <TableCell className="w-[10%] text-center">
+                                            {subpart.numObjects}
+                                          </TableCell>
+                                          <TableCell className="w-[10%] text-center">
+                                            {subpart.threshold}
+                                          </TableCell>
+                                          <TableCell className="w-[10%] text-center">
+                                            {subpart.createdAt}
+                                          </TableCell>
+                                          <TableCell className="w-[10%] text-center">
+                                            {subpart.updatedAt}
+                                          </TableCell>
+                                        </>
+                                      )}
+                                      <TableCell className="w-[10%] text-center">
                                         <Button
                                           variant="outline"
                                           size="sm"
