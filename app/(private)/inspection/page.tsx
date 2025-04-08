@@ -41,6 +41,7 @@ import {
   useGetContactList,
   useGetCustomer,
   useGetCustomerList,
+  CustomerContact,
 } from "@/lib/hooks/useCustomer";
 import {
   Select,
@@ -58,50 +59,16 @@ import { Tooltip } from "@/components/ui/tooltip";
 import { useGetModels } from "@/lib/hooks/useModels";
 import type { Model } from "@/lib/hooks/useModels";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
-import { useGetSubparts } from "@/lib/hooks/useSubparts";
-
-interface Subpart {
-  id: number;
-  name: string;
-  inUse: number;
-  description?: string;
-  specifications?: {
-    manufacturer: string;
-    serialNumber: string;
-    manufactureDate: string;
-    weight: string;
-    dimensions: string;
-  };
-  inspectionHistory?: {
-    date: string;
-    action: string;
-    technician: string;
-    notes: string;
-  }[];
-  issues?: {
-    id: string;
-    description: string;
-    severity: "low" | "medium" | "high" | "critical";
-    reportedDate: string;
-    status: "open" | "in-progress" | "resolved";
-  }[];
-}
-
-// 상태에 따른 색상 반환 함수
-function getStatusColor(status: string | undefined) {
-  if (!status) return "bg-gray-500 text-white";
-
-  switch (status.toLowerCase()) {
-    case "completed":
-      return "bg-green-500 text-white";
-    case "in-progress":
-      return "bg-blue-500 text-white";
-    case "pending":
-      return "bg-amber-500 text-white";
-    default:
-      return "bg-gray-500 text-white";
-  }
-}
+import {
+  useGetSubparts,
+  useUpdateSubpartsStatus,
+  Subpart,
+} from "@/lib/hooks/useSubparts";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
+import { X } from "lucide-react";
 
 // inUse 상태에 따른 색상 반환 함수
 function getInUseStatusColor(inUse: number | undefined) {
@@ -109,22 +76,6 @@ function getInUseStatusColor(inUse: number | undefined) {
     return "bg-green-400 text-white"; // 사용중 - 밝은 녹색
   } else {
     return "bg-gray-400 text-white"; // 미사용중 - 회색
-  }
-}
-
-// 심각도에 따른 색상 반환 함수
-function getSeverityColor(severity: string) {
-  switch (severity) {
-    case "low":
-      return "text-green-500";
-    case "medium":
-      return "text-amber-500";
-    case "high":
-      return "text-orange-500";
-    case "critical":
-      return "text-red-500";
-    default:
-      return "text-gray-500";
   }
 }
 
@@ -146,6 +97,13 @@ export default function InspectionPage() {
   const [isSubpartFullView, setIsSubpartFullView] = React.useState(false);
   const [isModelListVisible, setIsModelListVisible] = React.useState(true);
   const [isSubpartListVisible, setIsSubpartListVisible] = React.useState(true);
+  const [isEditMode, setIsEditMode] = React.useState(false);
+  const [selectedContacts, setSelectedContacts] = React.useState<string[]>([]);
+  const [editedSubparts, setEditedSubparts] = React.useState<
+    Record<number, number>
+  >({});
+  const { mutate: updateSubpartsStatus, isPending: isUpdating } =
+    useUpdateSubpartsStatus();
 
   // URL에서 파라미터 가져오기
   const customerId = searchParams.get("customerId") || "all";
@@ -306,6 +264,73 @@ export default function InspectionPage() {
   const handleSubpartDetailClick = (subpart: Subpart) => {
     setSelectedSubpartDetail(subpart);
     setIsSubpartDetailOpen(true);
+  };
+
+  const handleSubpartStatusChange = (subpartId: number, inUse: number) => {
+    setEditedSubparts((prev) => ({
+      ...prev,
+      [subpartId]: inUse,
+    }));
+  };
+
+  const handleContactSelect = (email: string) => {
+    console.log("Selected email:", email);
+    setSelectedContacts((prev) => {
+      const newContacts = prev.includes(email)
+        ? prev.filter((e) => e !== email)
+        : [...prev, email];
+      console.log("Updated contacts:", newContacts);
+      return newContacts;
+    });
+  };
+
+  const handleSaveChanges = () => {
+    if (!selectedModel || !customerData?.customers[0]?.id) return;
+
+    const subpartsToUpdate = Object.entries(editedSubparts).map(
+      ([id, inUse]) => ({
+        id: parseInt(id),
+        inUse,
+      })
+    );
+
+    updateSubpartsStatus(
+      {
+        customerId: customerData.customers[0].id,
+        modelId: selectedModel,
+        userId: 5, // 실제 사용자 ID로 변경 필요
+        person: "홍길동", // 실제 사용자 이름으로 변경 필요
+        ip: "192.168.0.1", // 실제 IP로 변경 필요
+        reason: "부품 상태 수정",
+        mailSendAddress: selectedContacts,
+        subparts: subpartsToUpdate,
+      },
+      {
+        onSuccess: () => {
+          setIsEditMode(false);
+          setSelectedContacts([]);
+          setEditedSubparts({});
+        },
+      }
+    );
+  };
+
+  // 수정 모드 진입 시 현재 상태 초기화
+  const handleEditModeToggle = () => {
+    if (!isEditMode) {
+      // 수정 모드 진입 시 현재 상태로 초기화
+      const initialStates =
+        subpartData?.items.reduce((acc, subpart) => {
+          acc[subpart.id] = subpart.inUse;
+          return acc;
+        }, {} as Record<number, number>) || {};
+      setEditedSubparts(initialStates);
+    } else {
+      // 수정 모드 종료 시 초기화
+      setEditedSubparts({});
+      setSelectedContacts([]);
+    }
+    setIsEditMode(!isEditMode);
   };
 
   return (
@@ -636,6 +661,25 @@ export default function InspectionPage() {
                         </CardDescription>
                       </div>
                       <div className="flex items-center space-x-2">
+                        {isSubpartFullView && (
+                          <>
+                            <Button
+                              variant="outline"
+                              onClick={handleEditModeToggle}
+                            >
+                              {isEditMode ? "수정 취소" : "수정"}
+                            </Button>
+                            {isEditMode && (
+                              <Button
+                                variant="default"
+                                onClick={handleSaveChanges}
+                                disabled={isUpdating}
+                              >
+                                {isUpdating ? "저장 중..." : "저장"}
+                              </Button>
+                            )}
+                          </>
+                        )}
                         <Button
                           variant="ghost"
                           size="icon"
@@ -655,6 +699,9 @@ export default function InspectionPage() {
                           onClick={() => {
                             setIsSubpartListVisible(false);
                             setIsSubpartFullView(false);
+                            setIsEditMode(false);
+                            setEditedSubparts({});
+                            setSelectedContacts([]);
                           }}
                         >
                           <IconX className="h-4 w-4" />
@@ -666,6 +713,96 @@ export default function InspectionPage() {
                         isSubpartFullView ? "h-[calc(100vh-150px)]" : ""
                       }
                     >
+                      {isSubpartFullView && isEditMode && (
+                        <div className="mb-4 p-4 border rounded-lg">
+                          <div className="space-y-4">
+                            <div className="flex items-center gap-2">
+                              <h3 className="font-medium">담당자 선택</h3>
+                              <Select
+                                value=""
+                                onValueChange={(value) => {
+                                  if (!selectedContacts.includes(value)) {
+                                    setSelectedContacts([
+                                      ...selectedContacts,
+                                      value,
+                                    ]);
+                                  }
+                                }}
+                              >
+                                <SelectTrigger className="w-[200px]">
+                                  <SelectValue placeholder="담당자 선택" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {customerContacts?.contacts?.map(
+                                    (contact) => (
+                                      <SelectItem
+                                        key={contact.id}
+                                        value={contact.personEmail}
+                                        disabled={selectedContacts.includes(
+                                          contact.personEmail
+                                        )}
+                                      >
+                                        {contact.person} ({contact.personEmail})
+                                      </SelectItem>
+                                    )
+                                  )}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              {selectedContacts.map((email) => {
+                                const contact =
+                                  customerContacts?.contacts?.find(
+                                    (c) => c.personEmail === email
+                                  );
+                                return (
+                                  <Badge
+                                    key={email}
+                                    variant="secondary"
+                                    className="flex items-center gap-1"
+                                  >
+                                    {contact?.person} ({email})
+                                    <button
+                                      onClick={() =>
+                                        setSelectedContacts(
+                                          selectedContacts.filter(
+                                            (e) => e !== email
+                                          )
+                                        )
+                                      }
+                                      className="ml-1 hover:text-red-500"
+                                    >
+                                      <X className="h-3 w-3" />
+                                    </button>
+                                  </Badge>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      {isSubpartFullView && isEditMode && (
+                        <div className="mb-4 p-4 border rounded-lg bg-blue-50">
+                          <div className="flex justify-between items-center">
+                            <span className="font-medium">
+                              변경된 항목:{" "}
+                              {
+                                Object.entries(editedSubparts).filter(
+                                  ([id, inUse]) =>
+                                    subpartData?.items.find(
+                                      (item) => item.id === parseInt(id)
+                                    )?.inUse !== inUse
+                                ).length
+                              }
+                              개
+                            </span>
+                            <div className="flex items-center space-x-2">
+                              <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                              <span className="text-sm">변경된 항목</span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                       <div className="rounded-md border">
                         <div className="relative w-full">
                           <Table>
@@ -694,15 +831,45 @@ export default function InspectionPage() {
                                     <TableRow key={subpart.id}>
                                       <TableCell>{subpart.name}</TableCell>
                                       <TableCell>
-                                        <span
-                                          className={`px-2 py-1 rounded-full text-xs ${getInUseStatusColor(
-                                            subpart.inUse
-                                          )}`}
-                                        >
-                                          {subpart.inUse === 1
-                                            ? "사용중"
-                                            : "미사용중"}
-                                        </span>
+                                        {isSubpartFullView && isEditMode ? (
+                                          <div className="flex items-center space-x-2">
+                                            <Switch
+                                              checked={
+                                                editedSubparts[subpart.id] === 1
+                                              }
+                                              onCheckedChange={(checked) =>
+                                                handleSubpartStatusChange(
+                                                  subpart.id,
+                                                  checked ? 1 : 0
+                                                )
+                                              }
+                                            />
+                                            <span
+                                              className={`${
+                                                editedSubparts[subpart.id] !==
+                                                  undefined &&
+                                                subpart.inUse !==
+                                                  editedSubparts[subpart.id]
+                                                  ? "text-blue-500 font-medium"
+                                                  : ""
+                                              }`}
+                                            >
+                                              {editedSubparts[subpart.id] === 1
+                                                ? "사용중"
+                                                : "미사용중"}
+                                            </span>
+                                          </div>
+                                        ) : (
+                                          <span
+                                            className={`px-2 py-1 rounded-full text-xs ${getInUseStatusColor(
+                                              subpart.inUse
+                                            )}`}
+                                          >
+                                            {subpart.inUse === 1
+                                              ? "사용중"
+                                              : "미사용중"}
+                                          </span>
+                                        )}
                                       </TableCell>
                                       <TableCell>
                                         <Button
