@@ -2,9 +2,21 @@
 
 import * as React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { IconPlus, IconX } from "@tabler/icons-react";
+import {
+  IconPlus,
+  IconX,
+  IconMaximize,
+  IconMinimize,
+} from "@tabler/icons-react";
 import { debounce } from "lodash";
 import { useCallback, useMemo } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -48,6 +60,12 @@ import type { Model } from "@/lib/hooks/useModels";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { useGetSubparts } from "@/lib/hooks/useSubparts";
 
+interface Subpart {
+  id: number;
+  name: string;
+  inUse: number;
+}
+
 // 상태에 따른 색상 반환 함수
 function getStatusColor(status: string | undefined) {
   if (!status) return "bg-gray-500 text-white";
@@ -81,6 +99,16 @@ export default function InspectionPage() {
     number | null
   >(null);
   const [selectedModel, setSelectedModel] = React.useState<number | null>(null);
+  const [selectedModelDetail, setSelectedModelDetail] =
+    React.useState<Model | null>(null);
+  const [selectedSubpartDetail, setSelectedSubpartDetail] =
+    React.useState<Subpart | null>(null);
+  const [isModelDetailOpen, setIsModelDetailOpen] = React.useState(false);
+  const [isSubpartDetailOpen, setIsSubpartDetailOpen] = React.useState(false);
+  const [isModelFullView, setIsModelFullView] = React.useState(false);
+  const [isSubpartFullView, setIsSubpartFullView] = React.useState(false);
+  const [isModelListVisible, setIsModelListVisible] = React.useState(true);
+  const [isSubpartListVisible, setIsSubpartListVisible] = React.useState(true);
 
   // URL에서 파라미터 가져오기
   const customerId = searchParams.get("customerId") || "all";
@@ -220,15 +248,48 @@ export default function InspectionPage() {
   // 인스펙션 클릭 핸들러
   const handleInspectionClick = (inspectionId: number) => {
     setSelectedInspection(inspectionId);
+    setIsModelListVisible(true);
+    setIsModelFullView(false);
   };
 
   // 모델 클릭 핸들러
   const handleModelClick = (modelId: number) => {
     setSelectedModel(modelId);
+    setIsSubpartListVisible(true);
+    setIsSubpartFullView(false);
+  };
+
+  // 모델 상세보기 핸들러
+  const handleModelDetailClick = (model: Model) => {
+    setSelectedModelDetail(model);
+    setIsModelDetailOpen(true);
+  };
+
+  // 부품 상세보기 핸들러
+  const handleSubpartDetailClick = (subpart: Subpart) => {
+    setSelectedSubpartDetail(subpart);
+    setIsSubpartDetailOpen(true);
   };
 
   return (
     <div className="container mx-auto pt-6">
+      {/* Breadcrumb */}
+      <div className="mb-4 flex items-center space-x-2 text-sm text-muted-foreground">
+        <span>인스펙션</span>
+        {selectedInspection && (
+          <>
+            <span>/</span>
+            <span>{selectedInspection}</span>
+          </>
+        )}
+        {selectedModel && (
+          <>
+            <span>/</span>
+            <span>{selectedModel}</span>
+          </>
+        )}
+      </div>
+
       <Card>
         <CardHeader>
           <CardTitle>Inspection Dashboard</CardTitle>
@@ -298,9 +359,11 @@ export default function InspectionPage() {
           <div className="space-y-4">
             <div
               className={`grid ${
-                selectedModel
+                isModelFullView || isSubpartFullView
+                  ? "grid-cols-1"
+                  : selectedModel && isSubpartListVisible
                   ? "lg:grid-cols-3"
-                  : selectedInspection
+                  : selectedInspection && isModelListVisible
                   ? "lg:grid-cols-2"
                   : "grid-cols-1"
               } gap-4`}
@@ -386,13 +449,17 @@ export default function InspectionPage() {
                 </div>
               </div>
 
-              {selectedInspection && (
+              {selectedInspection && isModelListVisible && (
                 <div
                   className={`lg:block ${
-                    selectedModel ? "hidden lg:block" : "block"
+                    selectedModel && !isModelFullView
+                      ? "hidden lg:block"
+                      : "block"
                   }`}
                 >
-                  <Card>
+                  <Card
+                    className={isModelFullView ? "fixed inset-0 z-50 m-4" : ""}
+                  >
                     <CardHeader className="flex flex-row items-center justify-between">
                       <div className="flex items-center space-x-4">
                         <CardTitle>모델 리스트</CardTitle>
@@ -404,19 +471,30 @@ export default function InspectionPage() {
                             : "인스펙션을 선택해주세요"}
                         </CardDescription>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="lg:hidden"
-                        onClick={() => {
-                          setSelectedModel(null);
-                          setSelectedInspection(null);
-                        }}
-                      >
-                        <IconX className="h-4 w-4" />
-                      </Button>
+                      <div className="flex items-center space-x-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setIsModelFullView(!isModelFullView)}
+                        >
+                          {isModelFullView ? (
+                            <IconMinimize className="h-4 w-4" />
+                          ) : (
+                            <IconMaximize className="h-4 w-4" />
+                          )}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setIsModelListVisible(false)}
+                        >
+                          <IconX className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent
+                      className={isModelFullView ? "h-[calc(100vh-150px)]" : ""}
+                    >
                       <div className="rounded-md border">
                         <div className="relative w-full">
                           <Table>
@@ -424,10 +502,17 @@ export default function InspectionPage() {
                               <TableRow>
                                 <TableHead>모델명</TableHead>
                                 <TableHead>부품 수</TableHead>
+                                <TableHead>상세보기</TableHead>
                               </TableRow>
                             </TableHeader>
                           </Table>
-                          <div className="overflow-auto h-[calc(100vh-500px)]">
+                          <div
+                            className={`overflow-auto ${
+                              isModelFullView
+                                ? "h-[calc(100vh-250px)]"
+                                : "h-[calc(100vh-500px)]"
+                            }`}
+                          >
                             {isModelLoading ? (
                               <LoadingSpinner />
                             ) : modelData?.models &&
@@ -448,6 +533,18 @@ export default function InspectionPage() {
                                       <TableCell>
                                         {model.subpartCount}
                                       </TableCell>
+                                      <TableCell>
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleModelDetailClick(model);
+                                          }}
+                                        >
+                                          상세보기
+                                        </Button>
+                                      </TableCell>
                                     </TableRow>
                                   ))}
                                 </TableBody>
@@ -465,9 +562,15 @@ export default function InspectionPage() {
                 </div>
               )}
 
-              {selectedModel && (
-                <div className="lg:block">
-                  <Card>
+              {selectedModel && isSubpartListVisible && (
+                <div
+                  className={`lg:block ${isModelFullView ? "hidden" : "block"}`}
+                >
+                  <Card
+                    className={
+                      isSubpartFullView ? "fixed inset-0 z-50 m-4" : ""
+                    }
+                  >
                     <CardHeader className="flex flex-row items-center justify-between">
                       <div className="flex items-center space-x-4">
                         <CardTitle>부품 리스트</CardTitle>
@@ -477,16 +580,34 @@ export default function InspectionPage() {
                           }개)`}
                         </CardDescription>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="lg:hidden"
-                        onClick={() => setSelectedModel(null)}
-                      >
-                        <IconX className="h-4 w-4" />
-                      </Button>
+                      <div className="flex items-center space-x-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() =>
+                            setIsSubpartFullView(!isSubpartFullView)
+                          }
+                        >
+                          {isSubpartFullView ? (
+                            <IconMinimize className="h-4 w-4" />
+                          ) : (
+                            <IconMaximize className="h-4 w-4" />
+                          )}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setIsSubpartListVisible(false)}
+                        >
+                          <IconX className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent
+                      className={
+                        isSubpartFullView ? "h-[calc(100vh-150px)]" : ""
+                      }
+                    >
                       <div className="rounded-md border">
                         <div className="relative w-full">
                           <Table>
@@ -494,10 +615,17 @@ export default function InspectionPage() {
                               <TableRow>
                                 <TableHead>부품명</TableHead>
                                 <TableHead>사용여부</TableHead>
+                                <TableHead>상세보기</TableHead>
                               </TableRow>
                             </TableHeader>
                           </Table>
-                          <div className="overflow-auto h-[calc(100vh-500px)]">
+                          <div
+                            className={`overflow-auto ${
+                              isSubpartFullView
+                                ? "h-[calc(100vh-250px)]"
+                                : "h-[calc(100vh-500px)]"
+                            }`}
+                          >
                             {isSubpartLoading ? (
                               <LoadingSpinner />
                             ) : subpartData?.items &&
@@ -517,6 +645,17 @@ export default function InspectionPage() {
                                             ? "사용중"
                                             : "미사용중"}
                                         </span>
+                                      </TableCell>
+                                      <TableCell>
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          onClick={() =>
+                                            handleSubpartDetailClick(subpart)
+                                          }
+                                        >
+                                          상세보기
+                                        </Button>
                                       </TableCell>
                                     </TableRow>
                                   ))}
@@ -538,6 +677,62 @@ export default function InspectionPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* 모델 상세 모달 */}
+      <Dialog open={isModelDetailOpen} onOpenChange={setIsModelDetailOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>{selectedModelDetail?.name} 상세 정보</DialogTitle>
+            <DialogDescription>
+              모델의 상세 정보를 확인할 수 있습니다.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <div className="col-span-1 font-medium">모델명</div>
+              <div className="col-span-3">{selectedModelDetail?.name}</div>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <div className="col-span-1 font-medium">부품 수</div>
+              <div className="col-span-3">
+                {selectedModelDetail?.subpartCount}
+              </div>
+            </div>
+            {/* 추가 상세 정보가 있다면 여기에 추가 */}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* 부품 상세 모달 */}
+      <Dialog open={isSubpartDetailOpen} onOpenChange={setIsSubpartDetailOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>{selectedSubpartDetail?.name} 상세 정보</DialogTitle>
+            <DialogDescription>
+              부품의 상세 정보를 확인할 수 있습니다.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <div className="col-span-1 font-medium">부품명</div>
+              <div className="col-span-3">{selectedSubpartDetail?.name}</div>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <div className="col-span-1 font-medium">사용 상태</div>
+              <div className="col-span-3">
+                <span
+                  className={`px-2 py-1 rounded-full text-xs ${getInUseStatusColor(
+                    selectedSubpartDetail?.inUse
+                  )}`}
+                >
+                  {selectedSubpartDetail?.inUse === 1 ? "사용중" : "미사용중"}
+                </span>
+              </div>
+            </div>
+            {/* 추가 상세 정보가 있다면 여기에 추가 */}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
