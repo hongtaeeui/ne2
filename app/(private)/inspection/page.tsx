@@ -3,13 +3,13 @@
 import * as React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
+  IconMinimize,
   IconPlus,
   IconX,
   IconMaximize,
-  IconMinimize,
 } from "@tabler/icons-react";
 import { debounce } from "lodash";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -18,7 +18,6 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
-
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -42,7 +41,7 @@ import {
   useGetContactList,
   useGetCustomer,
   useGetCustomerList,
-  CustomerContact,
+  type CustomerContact,
 } from "@/lib/hooks/useCustomer";
 import {
   Select,
@@ -52,23 +51,31 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Tooltip } from "@/components/ui/tooltip";
 import { useGetModels } from "@/lib/hooks/useModels";
 import type { Model } from "@/lib/hooks/useModels";
-import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import {
   useGetSubparts,
   useUpdateSubpartsStatus,
-  Subpart,
+  type Subpart,
 } from "@/lib/hooks/useSubparts";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/components/ui/use-toast";
+import { cn } from "@/lib/utils";
+import { DataTable } from "@/components/ui/data-table";
+import { useGetInspectionType } from "@/lib/hooks/useInspectionType";
+import { useGetInspectionResult } from "@/lib/hooks/useInspectionResult";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { Switch } from "@/components/ui/switch";
 import { X } from "lucide-react";
 
 // inUse 상태에 따른 색상 반환 함수
@@ -83,30 +90,31 @@ function getInUseStatusColor(inUse: number | undefined) {
 export default function InspectionPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [searchTerm, setSearchTerm] = React.useState("");
-  const [selectedInspection, setSelectedInspection] = React.useState<
-    number | null
-  >(null);
-  const [selectedModel, setSelectedModel] = React.useState<number | null>(null);
-  const [selectedModelDetail, setSelectedModelDetail] =
-    React.useState<Model | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedInspection, setSelectedInspection] = useState<number | null>(
+    null
+  );
+  const [selectedModel, setSelectedModel] = useState<number | null>(null);
+  const [selectedModelDetail, setSelectedModelDetail] = useState<Model | null>(
+    null
+  );
   const [selectedSubpartDetail, setSelectedSubpartDetail] =
-    React.useState<Subpart | null>(null);
-  const [isModelDetailOpen, setIsModelDetailOpen] = React.useState(false);
-  const [isSubpartDetailOpen, setIsSubpartDetailOpen] = React.useState(false);
-  const [isModelFullView, setIsModelFullView] = React.useState(false);
-  const [isSubpartFullView, setIsSubpartFullView] = React.useState(false);
-  const [isModelListVisible, setIsModelListVisible] = React.useState(true);
-  const [isSubpartListVisible, setIsSubpartListVisible] = React.useState(true);
-  const [isEditMode, setIsEditMode] = React.useState(false);
-  const [selectedContacts, setSelectedContacts] = React.useState<string[]>([]);
-  const [editedSubparts, setEditedSubparts] = React.useState<
-    Record<number, number>
-  >({});
+    useState<Subpart | null>(null);
+  const [isModelDetailOpen, setIsModelDetailOpen] = useState(false);
+  const [isSubpartDetailOpen, setIsSubpartDetailOpen] = useState(false);
+  const [isModelFullView, setIsModelFullView] = useState(false);
+  const [isSubpartFullView, setIsSubpartFullView] = useState(false);
+  const [isModelListVisible, setIsModelListVisible] = useState(true);
+  const [isSubpartListVisible, setIsSubpartListVisible] = useState(true);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [selectedContacts, setSelectedContacts] = useState<string[]>([]);
+  const [editedSubparts, setEditedSubparts] = useState<Record<number, number>>(
+    {}
+  );
   const { mutate: updateSubpartsStatus, isPending: isUpdating } =
     useUpdateSubpartsStatus();
-  const [isSaveDialogOpen, setIsSaveDialogOpen] = React.useState(false);
-  const [isConfirmDialogOpen, setIsConfirmDialogOpen] = React.useState(false);
+  const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
+  const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
 
   // URL에서 파라미터 가져오기
   const customerId = searchParams.get("customerId") || "all";
@@ -358,9 +366,9 @@ export default function InspectionPage() {
   };
 
   return (
-    <div className="container mx-auto pt-6">
+    <div className="container mx-auto pt-6 px-4">
       {/* Breadcrumb */}
-      <div className="mb-4 flex items-center space-x-2 text-sm text-muted-foreground">
+      <div className="mb-4 flex items-center space-x-2 text-sm text-muted-foreground overflow-x-auto">
         <span>인스펙션</span>
         {selectedInspection && (
           <>
@@ -376,16 +384,16 @@ export default function InspectionPage() {
         )}
       </div>
 
-      <Card>
+      <Card className="max-w-full">
         <CardHeader>
           <CardTitle>Inspection Dashboard</CardTitle>
           <CardDescription>
             {paginatedData?.pagination.total || 0} inspections found
           </CardDescription>
-          <div className="flex justify-between items-center gap-4">
-            <div className="flex items-center gap-4 flex-1">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div className="flex flex-col md:flex-row items-start md:items-center gap-4 w-full md:w-auto">
               <Select value={customerId} onValueChange={handleCustomerChange}>
-                <SelectTrigger className="w-[200px]">
+                <SelectTrigger className="w-full md:w-[200px]">
                   <SelectValue placeholder="Select Customer" />
                 </SelectTrigger>
                 <SelectContent>
@@ -399,12 +407,12 @@ export default function InspectionPage() {
               </Select>
               <Input
                 placeholder="Search inspections..."
-                className="max-w-sm"
+                className="w-full md:w-[200px]"
                 value={searchTerm}
                 onChange={handleSearchInput}
               />
               <Select value={String(limit)} onValueChange={handleLimitChange}>
-                <SelectTrigger className="w-[120px]">
+                <SelectTrigger className="w-full md:w-[120px]">
                   <SelectValue placeholder="Page Size" />
                 </SelectTrigger>
                 <SelectContent>
@@ -460,59 +468,61 @@ export default function InspectionPage() {
                 }`}
               >
                 <div className="rounded-md border">
-                  <div className="relative w-full">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead className="w-[40%] text-left">
-                            Name
-                          </TableHead>
-                          <TableHead className="w-[40%] hidden md:table-cell text-left">
-                            고객사
-                          </TableHead>
-                          <TableHead className="w-[20%] text-center">
-                            Model Count
-                          </TableHead>
-                        </TableRow>
-                      </TableHeader>
-                    </Table>
-                    <div className="overflow-auto h-[calc(100vh-400px)]">
-                      {isInspectionLoading ? (
-                        <LoadingSpinner />
-                      ) : (
-                        <Table>
-                          <TableBody>
-                            {filteredInspections.map(
-                              (inspection: Inspection) => (
-                                <TableRow
-                                  key={inspection.id}
-                                  className={`cursor-pointer hover:bg-gray-100 ${
-                                    selectedInspection === inspection.id
-                                      ? "bg-gray-100"
-                                      : ""
-                                  }`}
-                                  onClick={() =>
-                                    handleInspectionClick(inspection.id)
-                                  }
-                                >
-                                  <TableCell className="w-[40%] text-left">
-                                    {inspection.name}
-                                  </TableCell>
-                                  <TableCell className="w-[40%] hidden md:table-cell text-left">
-                                    {customerData?.customers.find(
-                                      (customer) =>
-                                        customer.id === inspection.customerId
-                                    )?.name || "알 수 없음"}
-                                  </TableCell>
-                                  <TableCell className="w-[20%] text-center">
-                                    {inspection.modelCount}
-                                  </TableCell>
-                                </TableRow>
-                              )
-                            )}
-                          </TableBody>
-                        </Table>
-                      )}
+                  <div className="relative w-full overflow-x-auto">
+                    <div className="min-w-[600px]">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="w-[40%] text-left">
+                              Name
+                            </TableHead>
+                            <TableHead className="w-[40%] hidden md:table-cell text-left">
+                              고객사
+                            </TableHead>
+                            <TableHead className="w-[20%] text-center">
+                              Model Count
+                            </TableHead>
+                          </TableRow>
+                        </TableHeader>
+                      </Table>
+                      <div className="overflow-auto h-[calc(100vh-400px)]">
+                        {isInspectionLoading ? (
+                          <LoadingSpinner />
+                        ) : (
+                          <Table>
+                            <TableBody>
+                              {filteredInspections.map(
+                                (inspection: Inspection) => (
+                                  <TableRow
+                                    key={inspection.id}
+                                    className={`cursor-pointer hover:bg-gray-100 ${
+                                      selectedInspection === inspection.id
+                                        ? "bg-gray-100"
+                                        : ""
+                                    }`}
+                                    onClick={() =>
+                                      handleInspectionClick(inspection.id)
+                                    }
+                                  >
+                                    <TableCell className="w-[40%] text-left">
+                                      {inspection.name}
+                                    </TableCell>
+                                    <TableCell className="w-[40%] hidden md:table-cell text-left">
+                                      {customerData?.customers.find(
+                                        (customer) =>
+                                          customer.id === inspection.customerId
+                                      )?.name || "알 수 없음"}
+                                    </TableCell>
+                                    <TableCell className="w-[20%] text-center">
+                                      {inspection.modelCount}
+                                    </TableCell>
+                                  </TableRow>
+                                )
+                              )}
+                            </TableBody>
+                          </Table>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -612,7 +622,9 @@ export default function InspectionPage() {
                                 {customerData?.customers.find(
                                   (customer) =>
                                     customer.id ===
-                                    selectedModelDetail?.customerId
+                                    (modelData?.models.find(
+                                      (model) => model.id === selectedModel
+                                    )?.customerId || 0)
                                 )?.name || "알 수 없음"}
                               </div>
                             </div>
@@ -631,33 +643,33 @@ export default function InspectionPage() {
                         </div>
                       )}
                       <div className="rounded-md border">
-                        <div className="relative w-full">
+                        <div className="relative w-full overflow-auto">
                           <Table>
                             <TableHeader>
                               <TableRow>
-                                <TableHead className="w-[30%] text-left">
+                                <TableHead className="w-[40%] min-w-[200px] text-left">
                                   모델명
                                 </TableHead>
-                                <TableHead className="w-[10%] text-center">
+                                <TableHead className="w-[10%] min-w-[80px] text-center">
                                   부품 수
                                 </TableHead>
                                 {isModelFullView && (
                                   <>
-                                    <TableHead className="w-[10%] text-center">
+                                    <TableHead className="w-[10%] min-w-[80px] text-center hidden md:table-cell">
                                       상태
                                     </TableHead>
-                                    <TableHead className="w-[20%] text-left">
+                                    <TableHead className="w-[20%] min-w-[150px] text-left hidden md:table-cell">
                                       고객사
                                     </TableHead>
-                                    <TableHead className="w-[10%] text-center">
+                                    <TableHead className="w-[10%] min-w-[100px] text-center hidden md:table-cell">
                                       생성일
                                     </TableHead>
-                                    <TableHead className="w-[10%] text-center">
+                                    <TableHead className="w-[10%] min-w-[100px] text-center hidden md:table-cell">
                                       수정일
                                     </TableHead>
                                   </>
                                 )}
-                                <TableHead className="w-[10%] text-center">
+                                <TableHead className="w-[10%] min-w-[80px] text-center">
                                   상세보기
                                 </TableHead>
                               </TableRow>
@@ -686,32 +698,32 @@ export default function InspectionPage() {
                                       }`}
                                       onClick={() => handleModelClick(model.id)}
                                     >
-                                      <TableCell className="w-[30%] text-left">
+                                      <TableCell className="w-[40%] min-w-[200px] text-left">
                                         {model.name}
                                       </TableCell>
-                                      <TableCell className="w-[10%] text-center">
+                                      <TableCell className="w-[10%] min-w-[80px] text-center">
                                         {model.subpartCount}
                                       </TableCell>
                                       {isModelFullView && (
                                         <>
-                                          <TableCell className="w-[10%] text-center">
+                                          <TableCell className="w-[10%] min-w-[80px] text-center hidden md:table-cell">
                                             {model.status}
                                           </TableCell>
-                                          <TableCell className="w-[20%] text-left">
+                                          <TableCell className="w-[20%] min-w-[150px] text-left hidden md:table-cell">
                                             {customerData?.customers.find(
                                               (customer) =>
                                                 customer.id === model.customerId
                                             )?.name || "알 수 없음"}
                                           </TableCell>
-                                          <TableCell className="w-[10%] text-center">
+                                          <TableCell className="w-[10%] min-w-[100px] text-center hidden md:table-cell">
                                             {model.createdAt}
                                           </TableCell>
-                                          <TableCell className="w-[10%] text-center">
+                                          <TableCell className="w-[10%] min-w-[100px] text-center hidden md:table-cell">
                                             {model.updatedAt}
                                           </TableCell>
                                         </>
                                       )}
-                                      <TableCell className="w-[10%] text-center">
+                                      <TableCell className="w-[10%] min-w-[80px] text-center">
                                         <Button
                                           variant="outline"
                                           size="sm"
@@ -829,7 +841,9 @@ export default function InspectionPage() {
                                 {customerData?.customers.find(
                                   (customer) =>
                                     customer.id ===
-                                    selectedModelDetail?.customerId
+                                    modelData?.models.find(
+                                      (model) => model.id === selectedModel
+                                    )?.customerId
                                 )?.name || "알 수 없음"}
                               </div>
                             </div>
@@ -948,39 +962,39 @@ export default function InspectionPage() {
                         </div>
                       )}
                       <div className="rounded-md border">
-                        <div className="relative w-full">
+                        <div className="relative w-full overflow-auto">
                           <Table>
                             <TableHeader>
                               <TableRow>
-                                <TableHead className="w-[20%] text-left">
+                                <TableHead className="w-[30%] min-w-[150px] text-left">
                                   부품명
                                 </TableHead>
-                                <TableHead className="w-[10%] text-center">
+                                <TableHead className="w-[20%] min-w-[100px] text-center">
                                   사용여부
                                 </TableHead>
                                 {isSubpartFullView && (
                                   <>
-                                    <TableHead className="w-[20%] text-left">
+                                    <TableHead className="w-[20%] min-w-[150px] text-left hidden md:table-cell">
                                       설명
                                     </TableHead>
-                                    <TableHead className="w-[10%] text-center">
+                                    <TableHead className="w-[10%] min-w-[80px] text-center hidden md:table-cell">
                                       YOLO ID
                                     </TableHead>
-                                    <TableHead className="w-[10%] text-center">
+                                    <TableHead className="w-[10%] min-w-[80px] text-center hidden md:table-cell">
                                       객체 수
                                     </TableHead>
-                                    <TableHead className="w-[10%] text-center">
+                                    <TableHead className="w-[10%] min-w-[80px] text-center hidden md:table-cell">
                                       임계값
                                     </TableHead>
-                                    <TableHead className="w-[10%] text-center">
+                                    <TableHead className="w-[10%] min-w-[100px] text-center hidden md:table-cell">
                                       생성일
                                     </TableHead>
-                                    <TableHead className="w-[10%] text-center">
+                                    <TableHead className="w-[10%] min-w-[100px] text-center hidden md:table-cell">
                                       수정일
                                     </TableHead>
                                   </>
                                 )}
-                                <TableHead className="w-[10%] text-center">
+                                <TableHead className="w-[10%] min-w-[80px] text-center">
                                   상세보기
                                 </TableHead>
                               </TableRow>
@@ -1001,10 +1015,10 @@ export default function InspectionPage() {
                                 <TableBody>
                                   {subpartData.items.map((subpart) => (
                                     <TableRow key={subpart.id}>
-                                      <TableCell className="w-[20%] text-left">
+                                      <TableCell className="w-[30%] min-w-[150px] text-left">
                                         {subpart.name}
                                       </TableCell>
-                                      <TableCell className="w-[10%] text-center">
+                                      <TableCell className="w-[20%] min-w-[100px] text-center">
                                         {isSubpartFullView && isEditMode ? (
                                           <div className="flex items-center justify-center space-x-2">
                                             <Switch
@@ -1047,27 +1061,27 @@ export default function InspectionPage() {
                                       </TableCell>
                                       {isSubpartFullView && (
                                         <>
-                                          <TableCell className="w-[20%] text-left">
+                                          <TableCell className="w-[20%] min-w-[150px] text-left hidden md:table-cell">
                                             {subpart.desc}
                                           </TableCell>
-                                          <TableCell className="w-[10%] text-center">
+                                          <TableCell className="w-[10%] min-w-[80px] text-center hidden md:table-cell">
                                             {subpart.yoloID}
                                           </TableCell>
-                                          <TableCell className="w-[10%] text-center">
+                                          <TableCell className="w-[10%] min-w-[80px] text-center hidden md:table-cell">
                                             {subpart.numObjects}
                                           </TableCell>
-                                          <TableCell className="w-[10%] text-center">
+                                          <TableCell className="w-[10%] min-w-[80px] text-center hidden md:table-cell">
                                             {subpart.threshold}
                                           </TableCell>
-                                          <TableCell className="w-[10%] text-center">
+                                          <TableCell className="w-[10%] min-w-[100px] text-center hidden md:table-cell">
                                             {subpart.createdAt}
                                           </TableCell>
-                                          <TableCell className="w-[10%] text-center">
+                                          <TableCell className="w-[10%] min-w-[100px] text-center hidden md:table-cell">
                                             {subpart.updatedAt}
                                           </TableCell>
                                         </>
                                       )}
-                                      <TableCell className="w-[10%] text-center">
+                                      <TableCell className="w-[10%] min-w-[80px] text-center">
                                         <Button
                                           variant="outline"
                                           size="sm"
@@ -1126,9 +1140,12 @@ export default function InspectionPage() {
             <div className="grid grid-cols-4 items-center gap-4">
               <div className="col-span-1 font-medium">고객사</div>
               <div className="col-span-3">
-                {customerData?.customers.find(
-                  (customer) => customer.id === selectedModelDetail?.customerId
-                )?.name || "알 수 없음"}
+                {selectedModelDetail?.customerId && customerData?.customers
+                  ? customerData.customers.find(
+                      (customer) =>
+                        customer.id === selectedModelDetail.customerId
+                    )?.name || "알 수 없음"
+                  : "알 수 없음"}
               </div>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
