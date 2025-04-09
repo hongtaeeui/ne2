@@ -91,6 +91,7 @@ export default function InspectionPage() {
   const [isModelListVisible, setIsModelListVisible] = useState(true);
   const [isSubpartListVisible, setIsSubpartListVisible] = useState(true);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [isSubpartDetailEditMode, setIsSubpartDetailEditMode] = useState(false);
   const [selectedContacts, setSelectedContacts] = useState<string[]>([]);
   const [editedSubparts, setEditedSubparts] = useState<Record<number, number>>(
     {}
@@ -238,6 +239,16 @@ export default function InspectionPage() {
 
   // 인스펙션 클릭 핸들러
   const handleInspectionClick = (inspectionId: number) => {
+    // 다른 인스펙션을 선택한 경우
+    if (selectedInspection !== inspectionId) {
+      // 이전에 선택한 모델 및 부품 리스트 초기화
+      setSelectedModel(null);
+      setIsSubpartListVisible(false);
+      setIsSubpartFullView(false);
+      setEditedSubparts({});
+      setSelectedContacts([]);
+    }
+
     setSelectedInspection(inspectionId);
     setIsModelListVisible(true);
     setIsModelFullView(false);
@@ -259,7 +270,69 @@ export default function InspectionPage() {
   // 부품 상세보기 핸들러
   const handleSubpartDetailClick = (subpart: Subpart) => {
     setSelectedSubpartDetail(subpart);
+    setIsSubpartDetailEditMode(false); // 상세보기 열 때 수정 모드 초기화
+
+    // 부품 상세보기 열 때 현재 상태로 초기화
+    setEditedSubparts((prev) => ({
+      ...prev,
+      [subpart.id]: subpart.inUse,
+    }));
+
+    // isMain이 1인 담당자 자동 선택
+    const mainContacts =
+      customerContacts?.contacts
+        ?.filter((contact) => contact.isMain === 1)
+        .map((contact) => contact.personEmail) || [];
+    setSelectedContacts(mainContacts);
+
     setIsSubpartDetailOpen(true);
+  };
+
+  // 부품 상세보기에서 변경 사항 저장 핸들러
+  const handleSubpartDetailSave = () => {
+    if (
+      !selectedSubpartDetail ||
+      !selectedModel ||
+      !customerData?.customers[0]?.id
+    )
+      return;
+
+    // 실제로 변경된 부품만 필터링
+    const subpartStatus = editedSubparts[selectedSubpartDetail.id];
+    if (
+      subpartStatus === undefined ||
+      subpartStatus === selectedSubpartDetail.inUse
+    ) {
+      setIsSubpartDetailEditMode(false);
+      return;
+    }
+
+    const subpartsToUpdate = [
+      {
+        id: selectedSubpartDetail.id,
+        inUse: subpartStatus,
+      },
+    ];
+
+    updateSubpartsStatus(
+      {
+        customerId: customerData.customers[0].id,
+        modelId: selectedModel,
+        userId: 5, // 실제 사용자 ID로 변경 필요
+        person: "홍길동", // 실제 사용자 이름으로 변경 필요
+        ip: "192.168.0.1", // 실제 IP로 변경 필요
+        reason: "부품 상태 수정",
+        mailSendAddress: selectedContacts,
+        subparts: subpartsToUpdate,
+      },
+      {
+        onSuccess: () => {
+          // UI 상태 초기화
+          setIsSubpartDetailEditMode(false);
+          setIsSubpartDetailOpen(false);
+        },
+      }
+    );
   };
 
   const handleSubpartStatusChange = (subpartId: number, inUse: number) => {
@@ -1096,30 +1169,39 @@ export default function InspectionPage() {
                                               <div className="flex items-center justify-center space-x-2">
                                                 <Switch
                                                   checked={
-                                                    editedSubparts[
-                                                      subpart.id
-                                                    ] === 1
+                                                    selectedSubpartDetail
+                                                      ? editedSubparts[
+                                                          selectedSubpartDetail
+                                                            .id
+                                                        ] === 1
+                                                      : false
                                                   }
                                                   onCheckedChange={(checked) =>
                                                     handleSubpartStatusChange(
-                                                      subpart.id,
+                                                      selectedSubpartDetail?.id ||
+                                                        0,
                                                       checked ? 1 : 0
                                                     )
                                                   }
+                                                  disabled={isUpdating}
                                                 />
                                                 <span
-                                                  className={`${
+                                                  className={
+                                                    selectedSubpartDetail &&
                                                     editedSubparts[
-                                                      subpart.id
+                                                      selectedSubpartDetail.id
                                                     ] !== undefined &&
-                                                    subpart.inUse !==
-                                                      editedSubparts[subpart.id]
+                                                    selectedSubpartDetail.inUse !==
+                                                      editedSubparts[
+                                                        selectedSubpartDetail.id
+                                                      ]
                                                       ? "text-blue-500 font-medium"
                                                       : ""
-                                                  }`}
+                                                  }
                                                 >
-                                                  {editedSubparts[
-                                                    subpart.id
+                                                  {selectedSubpartDetail &&
+                                                  editedSubparts[
+                                                    selectedSubpartDetail.id
                                                   ] === 1
                                                     ? "사용중"
                                                     : "미사용중"}
@@ -1260,13 +1342,67 @@ export default function InspectionPage() {
       </Dialog>
 
       {/* 부품 상세 모달 */}
-      <Dialog open={isSubpartDetailOpen} onOpenChange={setIsSubpartDetailOpen}>
+      <Dialog
+        open={isSubpartDetailOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            setIsSubpartDetailEditMode(false);
+          }
+          setIsSubpartDetailOpen(open);
+        }}
+      >
         <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle>{selectedSubpartDetail?.name} 상세 정보</DialogTitle>
-            <DialogDescription>
-              부품의 상세 정보를 확인할 수 있습니다.
-            </DialogDescription>
+          <DialogHeader className="flex flex-row items-center justify-between">
+            <div>
+              <DialogTitle>{selectedSubpartDetail?.name} 상세 정보</DialogTitle>
+              <DialogDescription>
+                부품의 상세 정보를 확인할 수 있습니다.
+              </DialogDescription>
+            </div>
+            {!isSubpartDetailEditMode && (
+              <Button
+                variant="outline"
+                onClick={() => setIsSubpartDetailEditMode(true)}
+                disabled={isUpdating}
+              >
+                수정
+              </Button>
+            )}
+            {isSubpartDetailEditMode && (
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setIsSubpartDetailEditMode(false);
+                    // 수정 취소시 편집 상태 초기화
+                    if (selectedSubpartDetail) {
+                      const { id, inUse } = selectedSubpartDetail;
+                      setEditedSubparts((prev) => ({
+                        ...prev,
+                        [id]: inUse,
+                      }));
+                    }
+                  }}
+                  disabled={isUpdating}
+                >
+                  취소
+                </Button>
+                <Button
+                  onClick={handleSubpartDetailSave}
+                  disabled={
+                    isUpdating ||
+                    (selectedSubpartDetail
+                      ? editedSubparts[selectedSubpartDetail.id] ===
+                          undefined ||
+                        editedSubparts[selectedSubpartDetail.id] ===
+                          selectedSubpartDetail.inUse
+                      : true)
+                  }
+                >
+                  {isUpdating ? "저장 중..." : "저장"}
+                </Button>
+              </div>
+            )}
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
@@ -1280,15 +1416,115 @@ export default function InspectionPage() {
             <div className="grid grid-cols-4 items-center gap-4">
               <div className="col-span-1 font-medium">사용 상태</div>
               <div className="col-span-3">
-                <span
-                  className={`px-2 py-1 rounded-full text-xs ${getInUseStatusColor(
-                    selectedSubpartDetail?.inUse
-                  )}`}
-                >
-                  {selectedSubpartDetail?.inUse === 1 ? "사용중" : "미사용중"}
-                </span>
+                {isSubpartDetailEditMode ? (
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      checked={
+                        selectedSubpartDetail
+                          ? editedSubparts[selectedSubpartDetail.id] === 1
+                          : false
+                      }
+                      onCheckedChange={(checked) => {
+                        if (selectedSubpartDetail) {
+                          setEditedSubparts((prev) => ({
+                            ...prev,
+                            [selectedSubpartDetail.id]: checked ? 1 : 0,
+                          }));
+                        }
+                      }}
+                      disabled={isUpdating}
+                    />
+                    <span
+                      className={
+                        selectedSubpartDetail &&
+                        editedSubparts[selectedSubpartDetail.id] !==
+                          undefined &&
+                        selectedSubpartDetail.inUse !==
+                          editedSubparts[selectedSubpartDetail.id]
+                          ? "text-blue-500 font-medium"
+                          : ""
+                      }
+                    >
+                      {selectedSubpartDetail &&
+                      editedSubparts[selectedSubpartDetail.id] === 1
+                        ? "사용중"
+                        : "미사용중"}
+                    </span>
+                  </div>
+                ) : (
+                  <span
+                    className={`px-2 py-1 rounded-full text-xs ${getInUseStatusColor(
+                      selectedSubpartDetail?.inUse
+                    )}`}
+                  >
+                    {selectedSubpartDetail?.inUse === 1 ? "사용중" : "미사용중"}
+                  </span>
+                )}
               </div>
             </div>
+
+            {/* 수정 모드일 때만 담당자 선택 UI 표시 */}
+            {isSubpartDetailEditMode && (
+              <div className="grid grid-cols-4 items-start gap-4">
+                <div className="col-span-1 font-medium">담당자 선택</div>
+                <div className="col-span-3 space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Select
+                      value=""
+                      onValueChange={(value) => {
+                        if (!selectedContacts.includes(value)) {
+                          setSelectedContacts([...selectedContacts, value]);
+                        }
+                      }}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="담당자 선택" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {customerContacts?.contacts?.map((contact) => (
+                          <SelectItem
+                            key={contact.id}
+                            value={contact.personEmail}
+                            disabled={selectedContacts.includes(
+                              contact.personEmail
+                            )}
+                          >
+                            {contact.person} ({contact.personEmail})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedContacts.map((email) => {
+                      const contact = customerContacts?.contacts?.find(
+                        (c) => c.personEmail === email
+                      );
+                      return (
+                        <Badge
+                          key={email}
+                          variant="secondary"
+                          className="flex items-center gap-1"
+                        >
+                          {contact?.person} ({email})
+                          <button
+                            onClick={() =>
+                              setSelectedContacts(
+                                selectedContacts.filter((e) => e !== email)
+                              )
+                            }
+                            className="ml-1 hover:text-red-500"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </Badge>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="grid grid-cols-4 items-center gap-4">
               <div className="col-span-1 font-medium">설명</div>
               <div className="col-span-3">{selectedSubpartDetail?.desc}</div>
