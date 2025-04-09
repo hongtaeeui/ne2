@@ -91,8 +91,6 @@ export default function InspectionPage() {
 
   const { user } = useAuthStore();
   const { ip } = useIpStore();
-  console.log("user", user);
-  console.log("ip", ip);
 
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -177,15 +175,13 @@ export default function InspectionPage() {
   // // console.log("allCustomers", allCustomers);
 
   // 특정 고객의 사용자 목록 조회
-  const { data: customerUsers } = useGetCustomerList({
-    customerId,
-    page,
-    limit,
-  });
-  console.log("customerUsers", customerUsers);
+  // const { data: customerUsers } = useGetCustomerList({
+  //   customerId,
+  //   page,
+  //   limit,
+  // });
   // 고객 연락처 목록 조회
   const { data: customerContacts } = useGetContactList(customerId);
-  console.log("customerContacts", customerContacts);
 
   // 페이지 변경 핸들러
   const handlePageChange = (newPage: number) => {
@@ -424,7 +420,7 @@ export default function InspectionPage() {
         subpartData.items.forEach((subpart) => {
           initialStates[subpart.id] = subpart.inUse;
         });
-        console.log("초기화된 상태: ", initialStates); // 디버깅용 로그
+
         setEditedSubparts(initialStates);
       }
 

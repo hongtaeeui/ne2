@@ -40,7 +40,7 @@ export function ClientLayout({ children }: ClientLayoutProps) {
 
     // IP 주소 가져오기
     getIpAddress().then((ip) => {
-      console.log("현재 IP 주소:", ip);
+      // console.log("현재 IP 주소:", ip);
       setIp(ip);
     });
   }, [setIp]);

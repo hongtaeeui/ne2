@@ -44,8 +44,6 @@ export const useGetSubparts = (params?: SubpartQueryParams) => {
         },
       });
 
-      console.log("response@@@@@@@@@@@@@@@@@@@@", response.data);
-
       return response.data; // API 응답을 그대로 반환
     },
     enabled: !!params?.modelId,

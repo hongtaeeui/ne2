@@ -37,7 +37,6 @@ const useAuthStore = create<AuthState>()(
         set({ user });
       },
       logout: () => {
-        console.log("로그아웃 호출");
         set({ token: null, isAuthenticated: false, user: null });
         if (typeof window !== "undefined") {
           window.location.href = "/login";

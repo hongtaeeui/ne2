@@ -4,10 +4,7 @@ import axios from "axios";
 export async function POST(request: NextRequest) {
   const body = await request.json();
 
-  console.log("body", body);
-
   try {
-    console.log("axios");
     // 백엔드 외부 API 요청보내기
     const response = await axios.post(
       "http://localhost:3005/v1/auth/login",
@@ -16,7 +13,6 @@ export async function POST(request: NextRequest) {
         headers: { "Content-Type": "application/json" },
       }
     );
-    console.log("response", response.data);
 
     // 응답에서 토큰 추출
     const token = response.data.access_token || response.data.token;

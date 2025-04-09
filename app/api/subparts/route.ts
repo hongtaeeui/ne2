@@ -65,8 +65,6 @@ export async function GET(request: NextRequest) {
       }
     );
 
-    console.log("response@@@@@@@@@@@@@@@@@@@@22", response.data);
-
     const { items, total } = response.data;
 
     return NextResponse.json({

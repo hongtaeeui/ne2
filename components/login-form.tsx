@@ -4,21 +4,34 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Image from "next/image";
 import { useLogin } from "@/lib/hooks/useAuth";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import useAuthStore from "@/lib/store/authStore";
 import Cookies from "js-cookie";
 
-export function LoginForm({ className, ...props }: React.ComponentProps<"div">) {
+export function LoginForm({
+  className,
+  ...props
+}: React.ComponentProps<"div">) {
   const router = useRouter();
   const [error, setError] = useState("");
   const { setToken, setUser } = useAuthStore();
 
-  console.log("error", error);
   const login = useLogin();
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -97,7 +110,13 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
   };
 
   return (
-    <div className={cn("flex flex-col gap-6 items-center justify-center min-h-screen", className)} {...props}>
+    <div
+      className={cn(
+        "flex flex-col gap-6 items-center justify-center min-h-screen",
+        className
+      )}
+      {...props}
+    >
       <Card className="w-full max-w-md">
         <CardHeader className="flex flex-col items-center justify-center space-y-4">
           <Image
@@ -108,7 +127,9 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
             className="-my-10" // 추가적인 스타일
           />
           <CardTitle className="text-center ">Login</CardTitle>
-          <CardDescription className="text-center">Enter your email below to login to your account</CardDescription>
+          <CardDescription className="text-center">
+            Enter your email below to login to your account
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit}>
@@ -116,14 +137,24 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
             <div className="flex flex-col gap-6">
               <div className="grid gap-3">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" name="email" type="email" placeholder="nvision@neuronaware.com" required disabled={login.isPending} />
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  placeholder="nvision@neuronaware.com"
+                  required
+                  disabled={login.isPending}
+                />
               </div>
               <div className="grid gap-3">
                 <div className="flex items-center">
                   <Label htmlFor="password">Password</Label>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <a href="#" className="ml-auto inline-block text-sm underline-offset-4 hover:underline">
+                      <a
+                        href="#"
+                        className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
+                      >
                         Forgot your password?
                       </a>
                     </TooltipTrigger>
@@ -132,10 +163,21 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
                     </TooltipContent>
                   </Tooltip>
                 </div>
-                <Input id="password" name="password" type="password" required placeholder="*********" disabled={login.isPending} />
+                <Input
+                  id="password"
+                  name="password"
+                  type="password"
+                  required
+                  placeholder="*********"
+                  disabled={login.isPending}
+                />
               </div>
               <div className="flex flex-col gap-3">
-                <Button type="submit" className="w-full" disabled={login.isPending}>
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={login.isPending}
+                >
                   {login.isPending ? "로그인 중..." : "Login"}
                 </Button>
               </div>
@@ -143,7 +185,11 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"div">) 
           </form>
         </CardContent>
         <CardFooter>
-          <Button variant="outline" className="w-full" onClick={handleTempLogin}>
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={handleTempLogin}
+          >
             임시 로그인 (테스트용)
           </Button>
         </CardFooter>

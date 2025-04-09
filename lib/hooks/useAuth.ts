@@ -22,7 +22,7 @@ export const useLogin = () => {
     onSuccess: (data) => {
       const token = data.access_token || data.token;
 
-      console.log("로그인 성공:", JSON.stringify(data.user)); // ✅ Log the respons
+      // console.log("로그인 성공:", JSON.stringify(data.user)); // ✅ Log the respons
 
       if (token && data.user) {
         try {
@@ -41,7 +41,7 @@ export const useLogin = () => {
 
 // 로그아웃 훅
 export const useLogout = () => {
-  console.log("로그아웃 훅 호출");
+  // console.log("로그아웃 훅 호출");
   const logout = useAuthStore((state) => state.logout);
 
   return async () => {

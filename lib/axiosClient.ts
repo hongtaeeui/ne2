@@ -25,11 +25,7 @@ axiosClient.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
-  console.log("내부 API 요청 설정:", {
-    url: config.url,
-    headers: config.headers,
-    params: config.params,
-  });
+
   return config;
 });
 
@@ -39,11 +35,7 @@ externalAxiosClient.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
-  console.log("외부 API 요청 설정:", {
-    url: config.url,
-    headers: config.headers,
-    params: config.params,
-  });
+
   return config;
 });
 
