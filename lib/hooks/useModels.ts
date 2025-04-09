@@ -49,17 +49,25 @@ export interface ModelResponse {
 
 interface ModelQueryParams {
   inspectionId?: number;
+  modelId?: number;
   page?: number;
   limit?: number;
 }
 
 export const useGetModels = (params?: ModelQueryParams) => {
   return useQuery({
-    queryKey: ["models", params?.inspectionId, params?.page, params?.limit],
+    queryKey: [
+      "models",
+      params?.inspectionId,
+      params?.modelId,
+      params?.page,
+      params?.limit,
+    ],
     queryFn: async () => {
       const response = await axiosClient.get<ModelResponse>(`/models`, {
         params: {
           ...(params?.inspectionId && { inspectionId: params.inspectionId }),
+          ...(params?.modelId && { modelId: params.modelId }),
           page: params?.page || 1,
           limit: params?.limit || 10,
         },
