@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     }
 
     // 외부 API 호출
-    const response = await externalAxiosClient.get("/v1/customer/customer", {
+    const response = await externalAxiosClient.get("/customer/customer", {
       params: {
         ...(customerId && { customerId: parseInt(customerId) }),
         page: parseInt(page),

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
+    console.log("request", request);
     // 응답 생성
     const response = NextResponse.json({ success: true });
 

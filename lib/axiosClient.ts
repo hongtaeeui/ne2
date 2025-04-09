@@ -3,7 +3,7 @@ import useAuthStore from "./store/authStore";
 
 // 내부 API용 axiosClient
 const axiosClient = axios.create({
-  baseURL: "/api", // Next.js API Route로 요청
+  baseURL: process.env.NEXT_PUBLIC_API_URL || "/api",
   headers: {
     "Content-Type": "application/json",
   },
@@ -12,7 +12,8 @@ const axiosClient = axios.create({
 
 // 외부 API용 axiosClient
 const externalAxiosClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_EXTERNAL_API_URL || "http://localhost:3005",
+  baseURL:
+    process.env.NEXT_PUBLIC_EXTERNAL_API_URL || "http://localhost:3005/v1",
   headers: {
     "Content-Type": "application/json",
   },

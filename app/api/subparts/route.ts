@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
 
     // 외부 API 호출 시 Authorization 헤더 포함
     const response = await externalAxiosClient.get<SubpartResponse>(
-      `http://localhost:3005/v1/parts-history/model/${modelId}/subparts`,
+      `/parts-history/model/${modelId}/subparts`,
       {
         params: {
           page: parseInt(page),

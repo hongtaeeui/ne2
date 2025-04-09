@@ -7,7 +7,7 @@ export async function POST(request: NextRequest) {
   try {
     // 백엔드 외부 API 요청보내기
     const response = await axios.post(
-      "http://localhost:3005/v1/auth/login",
+      `${process.env.NEXT_PUBLIC_EXTERNAL_API_URL}/auth/login`,
       body,
       {
         headers: { "Content-Type": "application/json" },

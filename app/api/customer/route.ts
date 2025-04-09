@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     }
 
     // 외부 API 호출
-    const response = await externalAxiosClient.get("/v1/customer", {
+    const response = await externalAxiosClient.get("/customer", {
       params: {
         page: parseInt(page),
         limit: parseInt(limit),

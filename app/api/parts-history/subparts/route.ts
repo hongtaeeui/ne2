@@ -29,7 +29,7 @@ export async function PUT(request: NextRequest) {
     const body: UpdateSubpartsStatusRequest = await request.json();
 
     const response = await externalAxiosClient.put(
-      "http://localhost:3005/v1/parts-history/subparts",
+      "/parts-history/subparts",
       body,
       {
         headers: {
