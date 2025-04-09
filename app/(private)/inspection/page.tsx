@@ -331,6 +331,7 @@ export default function InspectionPage() {
       },
       {
         onSuccess: () => {
+          // UI 상태 초기화
           setIsEditMode(false);
           setSelectedContacts([]);
           setEditedSubparts({});

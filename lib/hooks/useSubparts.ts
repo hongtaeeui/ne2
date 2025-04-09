@@ -1,4 +1,4 @@
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import axiosClient from "../axiosClient";
 
 export interface Subpart {
@@ -71,6 +71,8 @@ interface UpdateSubpartsStatusResponse {
 }
 
 export const useUpdateSubpartsStatus = () => {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: async (data: UpdateSubpartsStatusRequest) => {
       const response = await axiosClient.put<UpdateSubpartsStatusResponse>(
@@ -78,6 +80,12 @@ export const useUpdateSubpartsStatus = () => {
         data
       );
       return response.data;
+    },
+    onSuccess: (_, variables) => {
+      // 저장 완료 후 자동으로 관련 쿼리 무효화
+      queryClient.invalidateQueries({
+        queryKey: ["subparts", variables.modelId],
+      });
     },
   });
 };
