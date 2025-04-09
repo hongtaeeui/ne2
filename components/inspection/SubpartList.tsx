@@ -183,11 +183,11 @@ export function SubpartList({ modelId }: SubpartListProps) {
     <Card
       className={
         isSubpartFullView
-          ? "fixed inset-0 z-50 m-4 transition-all duration-300 overflow-auto"
+          ? "fixed inset-0 z-50 m-4 transition-all duration-300 overflow-hidden max-h-[100vh]"
           : "transition-all duration-300 max-w-full"
       }
     >
-      <CardHeader className="flex flex-row items-center justify-between flex-wrap sm:flex-nowrap">
+      <CardHeader className="flex flex-row items-center justify-between flex-wrap sm:flex-nowrap sticky top-0 bg-white z-10">
         <div className="flex flex-row items-center space-x-4 w-full sm:w-auto">
           <CardTitle className="whitespace-nowrap">부품 리스트</CardTitle>
           <CardDescription className="whitespace-normal sm:whitespace-nowrap">
@@ -242,7 +242,7 @@ export function SubpartList({ modelId }: SubpartListProps) {
       <CardContent
         className={
           isSubpartFullView
-            ? "h-[calc(100vh-150px)] overflow-auto"
+            ? "overflow-y-auto pb-20 h-[calc(100vh-150px)]"
             : "overflow-auto"
         }
       >
@@ -288,8 +288,8 @@ export function SubpartList({ modelId }: SubpartListProps) {
                     <div className="text-sm font-medium text-gray-500 mb-2">
                       담당자 선택
                     </div>
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-2">
+                    <div className="space-y-4 max-h-[200px] overflow-y-auto pr-1">
+                      <div className="sticky top-0 bg-gray-50 pb-2 z-[5]">
                         <Select value="" onValueChange={handleAddContact}>
                           <SelectTrigger className="w-full">
                             <SelectValue placeholder="담당자 선택" />
@@ -309,7 +309,7 @@ export function SubpartList({ modelId }: SubpartListProps) {
                           </SelectContent>
                         </Select>
                       </div>
-                      <div className="flex flex-wrap gap-2">
+                      <div className="flex flex-wrap gap-2 pt-1">
                         {selectedContacts.map((email) => {
                           const contact = customerContacts?.contacts?.find(
                             (c) => c.personEmail === email
@@ -367,7 +367,7 @@ export function SubpartList({ modelId }: SubpartListProps) {
           <div className="relative w-full overflow-x-auto">
             <div className="overflow-x-auto">
               <Table>
-                <TableHeader>
+                <TableHeader className="sticky top-0 bg-white z-10">
                   <TableRow>
                     <TableHead className="w-[10%] min-w-[80px] text-left whitespace-nowrap">
                       부품번호
@@ -406,13 +406,7 @@ export function SubpartList({ modelId }: SubpartListProps) {
                   </TableRow>
                 </TableHeader>
               </Table>
-              <div
-                className={`overflow-auto ${
-                  isSubpartFullView
-                    ? "h-[calc(100vh-250px)]"
-                    : "h-[calc(100vh-500px)]"
-                }`}
-              >
+              <div className="overflow-auto max-h-[60vh]">
                 {isSubpartLoading ? (
                   <div className="flex justify-center items-center h-32">
                     <LoadingSpinner />

@@ -145,6 +145,10 @@ export function SubpartDetailDialog({
     toggleSubpartDetailEditMode(false);
   };
 
+  const handleClose = () => {
+    toggleSubpartDetailOpen(false);
+  };
+
   // 상태 변경 핸들러
   const handleStatusChange = (checked: boolean) => {
     if (selectedSubpartDetail) {
@@ -175,15 +179,10 @@ export function SubpartDetailDialog({
     return selectedSubpartDetail.inUse === 1;
   };
 
-  // 닫기 버튼 핸들러
-  const handleClose = () => {
-    toggleSubpartDetailOpen(false);
-  };
-
   return (
     <Dialog open={isSubpartDetailOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
-        <DialogHeader className="flex flex-col space-y-2 text-center sm:text-left mb-2">
+      <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto py-0 [&>button[aria-label='Close']]:hidden">
+        <DialogHeader className="flex flex-col space-y-2 text-center sm:text-left mb-2 sticky top-0 bg-white pb-2 py-3 z-10">
           <div className="flex justify-between items-center">
             <DialogTitle>{selectedSubpartDetail?.name} 상세 정보</DialogTitle>
             <div className="flex items-center gap-2">
@@ -193,19 +192,19 @@ export function SubpartDetailDialog({
                   size="sm"
                   onClick={handleEditModeToggle}
                   disabled={isUpdating}
-                  className="mr-8"
+                  className="mr-2"
                 >
                   수정
                 </Button>
               )}
-              {/* <Button
+              <Button
                 variant="ghost"
                 size="icon"
                 onClick={handleClose}
                 className="h-8 w-8"
               >
                 <X className="h-4 w-4" />
-              </Button> */}
+              </Button>
             </div>
           </div>
           <DialogDescription>
@@ -238,7 +237,7 @@ export function SubpartDetailDialog({
         </div>
 
         {isSubpartDetailEditMode && (
-          <div className="flex items-center gap-2 justify-end">
+          <div className="flex items-center gap-2 justify-end sticky top-[80px] bg-white z-10 pb-2">
             <Button
               variant="outline"
               size="sm"
