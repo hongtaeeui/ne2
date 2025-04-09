@@ -184,7 +184,7 @@ export function LoginForm({
             </div>
           </form>
         </CardContent>
-        <CardFooter>
+        {/* <CardFooter>
           <Button
             variant="outline"
             className="w-full"
@@ -192,7 +192,7 @@ export function LoginForm({
           >
             임시 로그인 (테스트용)
           </Button>
-        </CardFooter>
+        </CardFooter> */}
       </Card>
     </div>
   );
