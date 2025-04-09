@@ -7,7 +7,7 @@ const axiosClient = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
-  timeout: 5000,
+  timeout: 15000,
 });
 
 // 외부 API용 axiosClient
@@ -16,7 +16,7 @@ const externalAxiosClient = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
-  timeout: 5000,
+  timeout: 15000,
 });
 
 // 내부 API 인터셉터

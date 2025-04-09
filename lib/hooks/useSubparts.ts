@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import axiosClient from "../axiosClient";
+import { AxiosError } from "axios";
 
 export interface Subpart {
   id: number;
@@ -75,11 +76,20 @@ export const useUpdateSubpartsStatus = () => {
 
   return useMutation({
     mutationFn: async (data: UpdateSubpartsStatusRequest) => {
-      const response = await axiosClient.put<UpdateSubpartsStatusResponse>(
-        "/parts-history/subparts",
-        data
-      );
-      return response.data;
+      try {
+        const response = await axiosClient.put<UpdateSubpartsStatusResponse>(
+          "/parts-history/subparts",
+          data,
+          {
+            timeout: 30000, // 30초로 설정하여 충분한 여유 시간 제공
+          }
+        );
+        return response.data;
+      } catch (error: unknown) {
+        const axiosError = error as AxiosError;
+        console.error("Update Subparts Status Error:", axiosError.message);
+        throw error;
+      }
     },
     onSuccess: (_, variables) => {
       // 저장 완료 후 자동으로 관련 쿼리 무효화

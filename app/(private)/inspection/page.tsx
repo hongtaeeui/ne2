@@ -63,6 +63,7 @@ import { X } from "lucide-react";
 import { formatDate, formatDateOnly } from "@/lib/dateUtils";
 import useAuthStore from "@/lib/store/authStore";
 import useIpStore from "@/lib/store/ipStore";
+
 // inUse 상태에 따른 색상 반환 함수
 function getInUseStatusColor(inUse: number | undefined) {
   if (inUse === 1) {
@@ -70,6 +71,18 @@ function getInUseStatusColor(inUse: number | undefined) {
   } else {
     return "bg-gray-400 text-white"; // 미사용중 - 회색
   }
+}
+
+// 로딩 오버레이 컴포넌트
+function LoadingOverlay() {
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className="bg-white p-6 rounded-lg shadow-lg flex flex-col items-center">
+        <div className="animate-spin rounded-full border-t-2 border-primary h-10 w-10" />
+        <p className="mt-4 text-lg font-semibold">처리 중입니다...</p>
+      </div>
+    </div>
+  );
 }
 
 export default function InspectionPage() {
@@ -314,11 +327,27 @@ export default function InspectionPage() {
 
   // 부품 상세보기에서 변경 사항 저장 핸들러
   const handleSubpartDetailSave = () => {
+    // 선택된 모델이 없거나 모델 데이터가 없으면 실행하지 않음
+    if (!selectedModel || !modelData?.models) {
+      setIsSubpartDetailEditMode(false);
+      return;
+    }
+
+    // 선택된 모델의 customerId 가져오기
+    const modelCustomerId = modelData.models.find(
+      (model) => model.id === selectedModel
+    )?.customerId;
+
+    if (!modelCustomerId) {
+      console.error("모델의 고객사 ID를 찾을 수 없습니다.");
+      setIsSubpartDetailEditMode(false);
+      return;
+    }
+
     // 변경사항이 있는 경우에만 다이얼로그 표시
     if (
       selectedSubpartDetail &&
       selectedModel &&
-      customerData?.customers[0]?.id &&
       editedSubparts[selectedSubpartDetail.id] !== undefined &&
       editedSubparts[selectedSubpartDetail.id] !== selectedSubpartDetail.inUse
     ) {
@@ -330,12 +359,17 @@ export default function InspectionPage() {
 
   // 부품 상세보기에서 변경 사항 최종 저장 핸들러
   const handleSubpartDetailSaveConfirm = () => {
-    if (
-      !selectedSubpartDetail ||
-      !selectedModel ||
-      !customerData?.customers[0]?.id
-    )
+    if (!selectedSubpartDetail || !selectedModel || !modelData?.models) return;
+
+    // 선택된 모델의 customerId 가져오기
+    const modelCustomerId = modelData.models.find(
+      (model) => model.id === selectedModel
+    )?.customerId;
+
+    if (!modelCustomerId) {
+      console.error("모델의 고객사 ID를 찾을 수 없습니다.");
       return;
+    }
 
     const subpartsToUpdate = [
       {
@@ -346,7 +380,7 @@ export default function InspectionPage() {
 
     updateSubpartsStatus(
       {
-        customerId: customerData.customers[0].id,
+        customerId: modelCustomerId,
         modelId: selectedModel,
         userId: user?.id || 0,
         person: user?.name || "",
@@ -441,9 +475,19 @@ export default function InspectionPage() {
       return;
     }
 
+    // 선택된 모델의 customerId 가져오기
+    const modelCustomerId = modelData?.models.find(
+      (model) => model.id === selectedModel
+    )?.customerId;
+
+    if (!modelCustomerId) {
+      console.error("모델의 고객사 ID를 찾을 수 없습니다.");
+      return;
+    }
+
     updateSubpartsStatus(
       {
-        customerId: customerData.customers[0].id,
+        customerId: modelCustomerId,
         modelId: selectedModel,
         userId: user?.id || 0,
         person: user?.name || "",
@@ -1673,6 +1717,12 @@ export default function InspectionPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>수정사항 확인</DialogTitle>
+            {isUpdating && (
+              <div className="mt-2 text-blue-500 font-medium flex items-center">
+                <div className="animate-spin rounded-full border-t-2 border-blue-500 h-4 w-4 mr-2" />
+                처리 중입니다...
+              </div>
+            )}
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -1721,6 +1771,7 @@ export default function InspectionPage() {
                 onChange={(e) => setModificationReason(e.target.value)}
                 placeholder="수정 사유를 입력하세요"
                 className="w-full"
+                disabled={isUpdating}
               />
             </div>
           </div>
@@ -1728,10 +1779,20 @@ export default function InspectionPage() {
             <Button
               variant="outline"
               onClick={() => setIsConfirmDialogOpen(false)}
+              disabled={isUpdating}
             >
               취소
             </Button>
-            <Button onClick={handleSaveConfirm}>저장</Button>
+            <Button onClick={handleSaveConfirm} disabled={isUpdating}>
+              {isUpdating ? (
+                <div className="flex items-center">
+                  <div className="animate-spin rounded-full border-t-2 border-white h-4 w-4 mr-2" />
+                  <span>저장 중...</span>
+                </div>
+              ) : (
+                "저장"
+              )}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -1744,6 +1805,12 @@ export default function InspectionPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>부품 수정사항 확인</DialogTitle>
+            {isUpdating && (
+              <div className="mt-2 text-blue-500 font-medium flex items-center">
+                <div className="animate-spin rounded-full border-t-2 border-blue-500 h-4 w-4 mr-2" />
+                처리 중입니다...
+              </div>
+            )}
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -1783,6 +1850,7 @@ export default function InspectionPage() {
                 onChange={(e) => setSelectedSubpartReason(e.target.value)}
                 placeholder="수정 사유를 입력하세요"
                 className="w-full"
+                disabled={isUpdating}
               />
             </div>
           </div>
@@ -1790,10 +1858,23 @@ export default function InspectionPage() {
             <Button
               variant="outline"
               onClick={() => setIsSubpartDetailConfirmDialogOpen(false)}
+              disabled={isUpdating}
             >
               취소
             </Button>
-            <Button onClick={handleSubpartDetailSaveConfirm}>저장</Button>
+            <Button
+              onClick={handleSubpartDetailSaveConfirm}
+              disabled={isUpdating}
+            >
+              {isUpdating ? (
+                <div className="flex items-center">
+                  <div className="animate-spin rounded-full border-t-2 border-white h-4 w-4 mr-2" />
+                  <span>저장 중...</span>
+                </div>
+              ) : (
+                "저장"
+              )}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -1811,13 +1892,26 @@ export default function InspectionPage() {
             <Button
               variant="outline"
               onClick={() => setIsSaveDialogOpen(false)}
+              disabled={isUpdating}
             >
               취소
             </Button>
-            <Button onClick={handleSaveConfirm}>확인</Button>
+            <Button onClick={handleSaveConfirm} disabled={isUpdating}>
+              {isUpdating ? (
+                <div className="flex items-center">
+                  <div className="animate-spin rounded-full border-t-2 border-white h-4 w-4 mr-2" />
+                  <span>저장 중...</span>
+                </div>
+              ) : (
+                "확인"
+              )}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* 로딩 오버레이 */}
+      {isUpdating && <LoadingOverlay />}
     </div>
   );
 }
