@@ -17,6 +17,7 @@ import {
   useGetSubparts,
   useUpdateSubpartsStatus,
 } from "@/lib/hooks/useSubparts";
+import { LoadingOverlay } from "@/components/inspection/LoadingOverlay";
 
 interface SubpartEditConfirmDialogProps {
   user: {
@@ -50,6 +51,7 @@ export function SubpartEditConfirmDialog({
   } = useInspectionStore();
 
   const { setIsUpdating } = useInspectionUpdateStore();
+  const { isUpdating } = useInspectionUpdateStore();
 
   // API 호출 관련 훅스
   const { mutate: updateSubpartsStatus } = useUpdateSubpartsStatus();
@@ -191,6 +193,7 @@ export function SubpartEditConfirmDialog({
       {/* 일반 수정사항 확인 다이얼로그 */}
       <Dialog open={isConfirmDialogOpen} onOpenChange={toggleConfirmDialogOpen}>
         <DialogContent>
+          {isUpdating && <LoadingOverlay />}
           <DialogHeader>
             <DialogTitle>수정사항 확인</DialogTitle>
           </DialogHeader>
@@ -262,6 +265,7 @@ export function SubpartEditConfirmDialog({
         onOpenChange={toggleSubpartDetailConfirmDialogOpen}
       >
         <DialogContent>
+          {isUpdating && <LoadingOverlay />}
           <DialogHeader>
             <DialogTitle>부품 수정사항 확인</DialogTitle>
           </DialogHeader>
@@ -306,7 +310,7 @@ export function SubpartEditConfirmDialog({
               />
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="flex justify-end mt-4">
             <Button
               variant="outline"
               onClick={() => toggleSubpartDetailConfirmDialogOpen(false)}

@@ -2,64 +2,12 @@
 
 import * as React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import {
-  IconMinimize,
-  IconX,
-  IconMaximize,
-  IconRefresh,
-} from "@tabler/icons-react";
-import { debounce } from "lodash";
-import { useCallback, useMemo, useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useGetInspection } from "@/lib/hooks/useInspection";
-import type { Inspection } from "@/lib/hooks/useInspection";
-import { useGetContactList, useGetCustomer } from "@/lib/hooks/useCustomer";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { useGetModels } from "@/lib/hooks/useModels";
-import type { Model } from "@/lib/hooks/useModels";
-import {
-  useGetSubparts,
-  useUpdateSubpartsStatus,
-  type Subpart,
-} from "@/lib/hooks/useSubparts";
-import { Badge } from "@/components/ui/badge";
-import { LoadingSpinner } from "@/components/ui/loading-spinner";
-import { Switch } from "@/components/ui/switch";
-import { X } from "lucide-react";
-import { formatDate, formatDateOnly } from "@/lib/dateUtils";
 import useAuthStore from "@/lib/store/authStore";
 import useIpStore from "@/lib/store/ipStore";
 import useInspectionStore from "@/lib/store/inspectionStore";
+import useInspectionUpdateStore from "@/lib/store/inspectionUpdateStore";
 
 // 컴포넌트 임포트
 import { InspectionHeader } from "@/components/inspection/InspectionHeader";
@@ -91,8 +39,8 @@ export default function InspectionPage() {
     selectedModel,
     isModelListVisible,
     isSubpartListVisible,
-    isUpdating,
   } = useInspectionStore();
+  const { isUpdating } = useInspectionUpdateStore();
 
   // URL에서 파라미터 가져오기
   const customerId = searchParams.get("customerId") || "all";
