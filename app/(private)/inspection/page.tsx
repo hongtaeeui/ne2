@@ -785,12 +785,12 @@ export default function InspectionPage() {
                         >
                           {isModelFullView && (
                             <div className="mb-4 p-4 border rounded-lg bg-gray-50">
-                              <div className="grid grid-cols-2 gap-4">
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div>
                                   <div className="text-sm font-medium text-gray-500">
                                     고객사
                                   </div>
-                                  <div className="text-base">
+                                  <div className="text-base overflow-hidden text-ellipsis">
                                     {customerData?.customers.find(
                                       (customer) =>
                                         customer.id ===
@@ -804,10 +804,20 @@ export default function InspectionPage() {
                                   <div className="text-sm font-medium text-gray-500">
                                     인스펙션
                                   </div>
-                                  <div className="text-base">
+                                  <div className="text-base overflow-hidden text-ellipsis">
                                     {paginatedData?.inspections.find(
                                       (inspection) =>
                                         inspection.id === selectedInspection
+                                    )?.name || "알 수 없음"}
+                                  </div>
+                                </div>
+                                <div>
+                                  <div className="text-sm font-medium text-gray-500">
+                                    모델
+                                  </div>
+                                  <div className="text-base overflow-hidden text-ellipsis">
+                                    {modelData?.models.find(
+                                      (model) => model.id === selectedModel
                                     )?.name || "알 수 없음"}
                                   </div>
                                 </div>
@@ -1021,12 +1031,12 @@ export default function InspectionPage() {
                         >
                           {isSubpartFullView && (
                             <div className="mb-4 p-4 border rounded-lg bg-gray-50">
-                              <div className="grid grid-cols-3 gap-4">
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div>
                                   <div className="text-sm font-medium text-gray-500">
                                     고객사
                                   </div>
-                                  <div className="text-base">
+                                  <div className="text-base overflow-hidden text-ellipsis">
                                     {customerData?.customers.find(
                                       (customer) =>
                                         customer.id ===
@@ -1040,7 +1050,7 @@ export default function InspectionPage() {
                                   <div className="text-sm font-medium text-gray-500">
                                     인스펙션
                                   </div>
-                                  <div className="text-base">
+                                  <div className="text-base overflow-hidden text-ellipsis">
                                     {paginatedData?.inspections.find(
                                       (inspection) =>
                                         inspection.id === selectedInspection
@@ -1051,7 +1061,7 @@ export default function InspectionPage() {
                                   <div className="text-sm font-medium text-gray-500">
                                     모델
                                   </div>
-                                  <div className="text-base">
+                                  <div className="text-base overflow-hidden text-ellipsis">
                                     {modelData?.models.find(
                                       (model) => model.id === selectedModel
                                     )?.name || "알 수 없음"}
