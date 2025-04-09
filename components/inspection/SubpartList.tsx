@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Card,
   CardContent,
@@ -18,6 +18,13 @@ import { Button } from "@/components/ui/button";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { IconMinimize, IconMaximize, IconX } from "@tabler/icons-react";
 import { formatDateOnly } from "@/lib/dateUtils";
 import useInspectionStore from "@/lib/store/inspectionStore";
@@ -25,7 +32,8 @@ import useInspectionUpdateStore from "@/lib/store/inspectionUpdateStore";
 import { useGetSubparts } from "@/lib/hooks/useSubparts";
 import { useGetModels } from "@/lib/hooks/useModels";
 import { useGetInspection } from "@/lib/hooks/useInspection";
-import { useGetCustomer } from "@/lib/hooks/useCustomer";
+import { useGetCustomer, useGetContactList } from "@/lib/hooks/useCustomer";
+import { X } from "lucide-react";
 
 // inUse 상태에 따른 색상 반환 함수
 function getInUseStatusColor(inUse: number | undefined) {
@@ -60,6 +68,9 @@ export function SubpartList({ modelId }: SubpartListProps) {
 
   const { isUpdating } = useInspectionUpdateStore();
 
+  // 담당자 이메일 상태 관리
+  const [selectedContacts, setSelectedContacts] = useState<string[]>([]);
+
   // 선택된 모델의 부품 데이터 가져오기
   const { data: subpartData, isLoading: isSubpartLoading } = useGetSubparts(
     modelId
@@ -84,6 +95,14 @@ export function SubpartList({ modelId }: SubpartListProps) {
       : undefined
   );
 
+  // 고객사 ID 가져오기
+  const customerId = modelData?.models.find(
+    (model) => model.id === selectedModel
+  )?.customerId;
+
+  // 고객사 담당자 목록 가져오기
+  const { data: customerContacts } = useGetContactList(customerId?.toString());
+
   // 변경된 부품이 있는지 확인
   const hasChanges = Object.entries(editedSubparts).some(
     ([id, inUse]) =>
@@ -105,6 +124,23 @@ export function SubpartList({ modelId }: SubpartListProps) {
     updateSubpartStatus(subpartId, checked ? 1 : 0);
   };
 
+  // 편집 모드 토글 핸들러
+  const handleEditModeToggle = () => {
+    // 수정 모드 진입 시 isMain이 1인 담당자 자동 선택
+    if (!isEditMode) {
+      const mainContacts =
+        customerContacts?.contacts
+          ?.filter((contact) => contact.isMain === 1)
+          .map((contact) => contact.personEmail) || [];
+      setSelectedContacts(mainContacts);
+    } else {
+      // 편집 모드 종료 시 선택된 담당자 초기화
+      setSelectedContacts([]);
+    }
+
+    toggleEditMode();
+  };
+
   // 저장 클릭 핸들러
   const handleSaveClick = () => {
     if (hasChanges) {
@@ -112,11 +148,24 @@ export function SubpartList({ modelId }: SubpartListProps) {
     }
   };
 
+  // 담당자 추가 핸들러
+  const handleAddContact = (value: string) => {
+    if (!selectedContacts.includes(value)) {
+      setSelectedContacts([...selectedContacts, value]);
+    }
+  };
+
+  // 담당자 제거 핸들러
+  const handleRemoveContact = (email: string) => {
+    setSelectedContacts(selectedContacts.filter((e) => e !== email));
+  };
+
   // 부품 리스트 닫기 핸들러
   const handleCloseSubpartList = () => {
     toggleSubpartListVisible(false);
     toggleSubpartFullView(false);
     toggleEditMode(false);
+    setSelectedContacts([]); // 담당자 이메일 상태 초기화
 
     // 모바일에서는 선택된 모델 초기화 (창 너비가 적을 경우)
     if (typeof window !== "undefined" && window.innerWidth < 1024) {
@@ -150,7 +199,7 @@ export function SubpartList({ modelId }: SubpartListProps) {
             <>
               <Button
                 variant="outline"
-                onClick={() => toggleEditMode()}
+                onClick={handleEditModeToggle}
                 className="text-sm px-2 py-1 h-8"
                 disabled={isUpdating}
               >
@@ -230,6 +279,64 @@ export function SubpartList({ modelId }: SubpartListProps) {
                 </div>
               </div>
             </div>
+
+            {/* 담당자 이메일 선택 UI (수정 모드일 때만 표시) */}
+            {isEditMode && (
+              <div className="mt-4 border-t pt-4">
+                <div className="grid grid-cols-1 gap-4">
+                  <div>
+                    <div className="text-sm font-medium text-gray-500 mb-2">
+                      담당자 선택
+                    </div>
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2">
+                        <Select value="" onValueChange={handleAddContact}>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="담당자 선택" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {customerContacts?.contacts?.map((contact) => (
+                              <SelectItem
+                                key={contact.id}
+                                value={contact.personEmail}
+                                disabled={selectedContacts.includes(
+                                  contact.personEmail
+                                )}
+                              >
+                                {contact.person} ({contact.personEmail})
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedContacts.map((email) => {
+                          const contact = customerContacts?.contacts?.find(
+                            (c) => c.personEmail === email
+                          );
+                          return (
+                            <Badge
+                              key={email}
+                              variant="secondary"
+                              className="flex items-center gap-1"
+                            >
+                              {contact?.person} ({email})
+                              <button
+                                onClick={() => handleRemoveContact(email)}
+                                className="ml-1 hover:text-red-500"
+                                type="button"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            </Badge>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
