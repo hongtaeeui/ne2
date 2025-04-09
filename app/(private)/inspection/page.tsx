@@ -101,6 +101,13 @@ export default function InspectionPage() {
     useUpdateSubpartsStatus();
   const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
+  const [
+    isSubpartDetailConfirmDialogOpen,
+    setIsSubpartDetailConfirmDialogOpen,
+  ] = useState(false);
+  const [modificationReason, setModificationReason] =
+    useState("부품 상태 수정");
+  const [selectedSubpartReason, setSelectedSubpartReason] = useState("");
 
   // URL에서 파라미터 가져오기
   const customerId = searchParams.get("customerId") || "all";
@@ -299,6 +306,22 @@ export default function InspectionPage() {
 
   // 부품 상세보기에서 변경 사항 저장 핸들러
   const handleSubpartDetailSave = () => {
+    // 변경사항이 있는 경우에만 다이얼로그 표시
+    if (
+      selectedSubpartDetail &&
+      selectedModel &&
+      customerData?.customers[0]?.id &&
+      editedSubparts[selectedSubpartDetail.id] !== undefined &&
+      editedSubparts[selectedSubpartDetail.id] !== selectedSubpartDetail.inUse
+    ) {
+      setIsSubpartDetailConfirmDialogOpen(true);
+    } else {
+      setIsSubpartDetailEditMode(false);
+    }
+  };
+
+  // 부품 상세보기에서 변경 사항 최종 저장 핸들러
+  const handleSubpartDetailSaveConfirm = () => {
     if (
       !selectedSubpartDetail ||
       !selectedModel ||
@@ -306,20 +329,10 @@ export default function InspectionPage() {
     )
       return;
 
-    // 실제로 변경된 부품만 필터링
-    const subpartStatus = editedSubparts[selectedSubpartDetail.id];
-    if (
-      subpartStatus === undefined ||
-      subpartStatus === selectedSubpartDetail.inUse
-    ) {
-      setIsSubpartDetailEditMode(false);
-      return;
-    }
-
     const subpartsToUpdate = [
       {
         id: selectedSubpartDetail.id,
-        inUse: subpartStatus,
+        inUse: editedSubparts[selectedSubpartDetail.id],
       },
     ];
 
@@ -330,7 +343,7 @@ export default function InspectionPage() {
         userId: 5, // 실제 사용자 ID로 변경 필요
         person: "홍길동", // 실제 사용자 이름으로 변경 필요
         ip: "192.168.0.1", // 실제 IP로 변경 필요
-        reason: "부품 상태 수정",
+        reason: selectedSubpartReason || "부품 상태 수정", // 사용자 입력 사유 또는 기본값
         mailSendAddress: selectedContacts,
         subparts: subpartsToUpdate,
       },
@@ -339,6 +352,8 @@ export default function InspectionPage() {
           // UI 상태 초기화
           setIsSubpartDetailEditMode(false);
           setIsSubpartDetailOpen(false);
+          setIsSubpartDetailConfirmDialogOpen(false);
+          setSelectedSubpartReason("");
         },
       }
     );
@@ -425,7 +440,7 @@ export default function InspectionPage() {
         userId: 5, // 실제 사용자 ID로 변경 필요
         person: "홍길동", // 실제 사용자 이름으로 변경 필요
         ip: "192.168.0.1", // 실제 IP로 변경 필요
-        reason: "부품 상태 수정",
+        reason: modificationReason, // 사용자 입력 사유
         mailSendAddress: selectedContacts,
         subparts: subpartsToUpdate,
       },
@@ -435,6 +450,7 @@ export default function InspectionPage() {
           setIsEditMode(false);
           setSelectedContacts([]);
           setEditedSubparts({});
+          setModificationReason("부품 상태 수정"); // 초기값으로 리셋
         },
       }
     );
@@ -571,18 +587,18 @@ export default function InspectionPage() {
               </CardHeader>
               <CardContent className="pt-4">
                 <div
-                  className="grid gap-4 overflow-hidden"
+                  className={`grid gap-4 overflow-hidden ${
+                    isModelFullView || isSubpartFullView
+                      ? ""
+                      : selectedModel && isSubpartListVisible
+                      ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
+                      : selectedInspection && isModelListVisible
+                      ? "grid-cols-1 md:grid-cols-2"
+                      : "grid-cols-1"
+                  }`}
                   style={{
-                    gridTemplateColumns:
-                      isModelFullView || isSubpartFullView
-                        ? "1fr"
-                        : selectedModel && isSubpartListVisible
-                        ? "1fr"
-                        : selectedInspection && isModelListVisible
-                        ? "1fr"
-                        : "1fr",
                     display:
-                      isSubpartFullView || isModelFullView ? "block" : "grid",
+                      isModelFullView || isSubpartFullView ? "block" : "grid",
                   }}
                 >
                   {/* 인스펙션 리스트 */}
@@ -698,7 +714,7 @@ export default function InspectionPage() {
                   {/* 모델 리스트 */}
                   {selectedInspection && isModelListVisible && (
                     <div
-                      className={`lg:block ${
+                      className={`${
                         selectedModel && !isModelFullView
                           ? "hidden lg:block"
                           : "block"
@@ -1680,6 +1696,15 @@ export default function InspectionPage() {
                     })}
                   </div>
                 </div>
+                <div>
+                  <h4 className="font-medium mb-2">수정 사유:</h4>
+                  <Input
+                    value={modificationReason}
+                    onChange={(e) => setModificationReason(e.target.value)}
+                    placeholder="수정 사유를 입력하세요"
+                    className="w-full"
+                  />
+                </div>
               </div>
             </DialogDescription>
           </DialogHeader>
@@ -1691,6 +1716,72 @@ export default function InspectionPage() {
               취소
             </Button>
             <Button onClick={handleSaveConfirm}>저장</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* 부품 상세보기 수정사항 확인 다이얼로그 */}
+      <Dialog
+        open={isSubpartDetailConfirmDialogOpen}
+        onOpenChange={setIsSubpartDetailConfirmDialogOpen}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>부품 수정사항 확인</DialogTitle>
+            <DialogDescription>
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-medium mb-2">수정사항:</h4>
+                  {selectedSubpartDetail && (
+                    <div className="p-2 bg-gray-50 rounded-md">
+                      <p>
+                        {selectedSubpartDetail.name}:{" "}
+                        {selectedSubpartDetail.inUse === 1
+                          ? "사용중"
+                          : "미사용중"}{" "}
+                        →{" "}
+                        {editedSubparts[selectedSubpartDetail.id] === 1
+                          ? "사용중"
+                          : "미사용중"}
+                      </p>
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <h4 className="font-medium mb-2">알림 받을 담당자:</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedContacts.map((email) => {
+                      const contact = customerContacts?.contacts?.find(
+                        (c) => c.personEmail === email
+                      );
+                      return (
+                        <Badge key={email} variant="secondary">
+                          {contact?.person} ({email})
+                        </Badge>
+                      );
+                    })}
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-medium mb-2">수정 사유:</h4>
+                  <Input
+                    value={selectedSubpartReason}
+                    onChange={(e) => setSelectedSubpartReason(e.target.value)}
+                    placeholder="수정 사유를 입력하세요"
+                    className="w-full"
+                  />
+                </div>
+              </div>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsSubpartDetailConfirmDialogOpen(false)}
+            >
+              취소
+            </Button>
+            <Button onClick={handleSubpartDetailSaveConfirm}>저장</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
