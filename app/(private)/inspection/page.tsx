@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useGetInspection } from "@/lib/hooks/useInspection";
 import useAuthStore from "@/lib/store/authStore";
@@ -30,7 +30,6 @@ function getInUseStatusColor(inUse: number | undefined) {
 }
 
 export default function InspectionPage() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const { user } = useAuthStore();
   const { ip } = useIpStore();

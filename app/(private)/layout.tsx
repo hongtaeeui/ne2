@@ -194,10 +194,10 @@ export default function PrivateLayout({
             <DropdownMenuLabel>내 계정</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
-              <Link href="/profile">프로필</Link>
+              <Link href="/">프로필</Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
-              <Link href="/settings">설정</Link>
+              <Link href="/">설정</Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout} className="text-red-500">
@@ -332,10 +332,10 @@ export default function PrivateLayout({
                   <DropdownMenuLabel>내 계정</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
-                    <Link href="/profile">프로필</Link>
+                    <Link href="/">프로필</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/settings">설정</Link>
+                    <Link href="/">설정</Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem

@@ -31,7 +31,7 @@ export default function Home() {
     if (!isLoading) {
       if (isAuthenticated) {
         // replace는 현재 페이지를 대체하여 브라우저 히스토리에 남지 않게 함
-        router.replace("/dashboard");
+        router.replace("/inspection");
       } else {
         router.replace("/login");
       }

@@ -24,7 +24,7 @@ export function middleware(request: NextRequest) {
   if (authRedirectPaths.some((path) => pathname.startsWith(path))) {
     // 이미 인증된 경우 대시보드로 리다이렉트
     if (isAuthenticated) {
-      return NextResponse.redirect(new URL("/dashboard", request.url));
+      return NextResponse.redirect(new URL("/inspection", request.url));
     }
   }
 
