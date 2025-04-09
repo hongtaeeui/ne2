@@ -168,6 +168,17 @@ export default function InspectionPage() {
 
   // 고객사 변경 핸들러
   const handleCustomerChange = (value: string) => {
+    // 선택된 고객사가 변경되면 인스펙션, 모델, 부품 리스트 초기화
+    setSelectedInspection(null);
+    setSelectedModel(null);
+    setIsModelListVisible(false);
+    setIsSubpartListVisible(false);
+    setIsModelFullView(false);
+    setIsSubpartFullView(false);
+    setEditedSubparts({});
+    setSelectedContacts([]);
+    setIsEditMode(false);
+
     const params = new URLSearchParams(searchParams);
     params.set("customerId", value);
     params.set("page", "1"); // 고객사가 변경되면 페이지를 1로 리셋
@@ -272,11 +283,9 @@ export default function InspectionPage() {
     setSelectedSubpartDetail(subpart);
     setIsSubpartDetailEditMode(false); // 상세보기 열 때 수정 모드 초기화
 
-    // 부품 상세보기 열 때 현재 상태로 초기화
-    setEditedSubparts((prev) => ({
-      ...prev,
-      [subpart.id]: subpart.inUse,
-    }));
+    // 부품 상세보기 열 때 현재 상태로 명확하게 초기화
+    // 이전 상태를 완전히 대체하는 방식으로 업데이트
+    setEditedSubparts({ [subpart.id]: subpart.inUse });
 
     // isMain이 1인 담당자 자동 선택
     const mainContacts =
@@ -351,12 +360,16 @@ export default function InspectionPage() {
   const handleEditModeToggle = () => {
     if (!isEditMode) {
       // 수정 모드 진입 시 현재 상태로 초기화
-      const initialStates =
-        subpartData?.items.reduce((acc, subpart) => {
-          acc[subpart.id] = subpart.inUse;
-          return acc;
-        }, {} as Record<number, number>) || {};
-      setEditedSubparts(initialStates);
+      // 명확하게 새 객체를 생성하여 이전 상태를 완전히 덮어씀
+      if (subpartData?.items) {
+        const initialStates: Record<number, number> = {};
+        // 모든 부품에 대해 확실히 초기값 설정
+        subpartData.items.forEach((subpart) => {
+          initialStates[subpart.id] = subpart.inUse;
+        });
+        console.log("초기화된 상태: ", initialStates); // 디버깅용 로그
+        setEditedSubparts(initialStates);
+      }
 
       // isMain이 1인 담당자 자동 선택
       const mainContacts =
@@ -438,6 +451,20 @@ export default function InspectionPage() {
       setIsRefreshing(false);
     }, 1000);
   }, [router]);
+
+  // 수정 모드 상태와 편집 상태의 동기화를 위한 useEffect
+  React.useEffect(() => {
+    // 부품 상세보기 모달이 열리거나 수정 모드로 전환될 때
+    if (
+      selectedSubpartDetail &&
+      (isSubpartDetailEditMode || isSubpartDetailOpen)
+    ) {
+      setEditedSubparts((prev) => ({
+        ...prev,
+        [selectedSubpartDetail.id]: selectedSubpartDetail.inUse,
+      }));
+    }
+  }, [selectedSubpartDetail, isSubpartDetailEditMode, isSubpartDetailOpen]);
 
   return (
     <div className="p-6">
@@ -1169,17 +1196,17 @@ export default function InspectionPage() {
                                               <div className="flex items-center justify-center space-x-2">
                                                 <Switch
                                                   checked={
-                                                    selectedSubpartDetail
+                                                    editedSubparts[
+                                                      subpart.id
+                                                    ] !== undefined
                                                       ? editedSubparts[
-                                                          selectedSubpartDetail
-                                                            .id
+                                                          subpart.id
                                                         ] === 1
-                                                      : false
+                                                      : subpart.inUse === 1
                                                   }
                                                   onCheckedChange={(checked) =>
                                                     handleSubpartStatusChange(
-                                                      selectedSubpartDetail?.id ||
-                                                        0,
+                                                      subpart.id,
                                                       checked ? 1 : 0
                                                     )
                                                   }
@@ -1187,22 +1214,24 @@ export default function InspectionPage() {
                                                 />
                                                 <span
                                                   className={
-                                                    selectedSubpartDetail &&
                                                     editedSubparts[
-                                                      selectedSubpartDetail.id
+                                                      subpart.id
                                                     ] !== undefined &&
-                                                    selectedSubpartDetail.inUse !==
-                                                      editedSubparts[
-                                                        selectedSubpartDetail.id
-                                                      ]
+                                                    subpart.inUse !==
+                                                      editedSubparts[subpart.id]
                                                       ? "text-blue-500 font-medium"
                                                       : ""
                                                   }
                                                 >
-                                                  {selectedSubpartDetail &&
-                                                  editedSubparts[
-                                                    selectedSubpartDetail.id
-                                                  ] === 1
+                                                  {editedSubparts[
+                                                    subpart.id
+                                                  ] !== undefined
+                                                    ? editedSubparts[
+                                                        subpart.id
+                                                      ] === 1
+                                                      ? "사용중"
+                                                      : "미사용중"
+                                                    : subpart.inUse === 1
                                                     ? "사용중"
                                                     : "미사용중"}
                                                 </span>
@@ -1352,57 +1381,77 @@ export default function InspectionPage() {
         }}
       >
         <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader className="flex flex-row items-center justify-between">
-            <div>
+          <DialogHeader className="flex flex-col space-y-2 text-center sm:text-left mb-2">
+            <div className="flex justify-between items-center">
               <DialogTitle>{selectedSubpartDetail?.name} 상세 정보</DialogTitle>
-              <DialogDescription>
-                부품의 상세 정보를 확인할 수 있습니다.
-              </DialogDescription>
-            </div>
-            {!isSubpartDetailEditMode && (
-              <Button
-                variant="outline"
-                onClick={() => setIsSubpartDetailEditMode(true)}
-                disabled={isUpdating}
-              >
-                수정
-              </Button>
-            )}
-            {isSubpartDetailEditMode && (
-              <div className="flex items-center gap-2">
+              {!isSubpartDetailEditMode && (
                 <Button
                   variant="outline"
+                  size="sm"
                   onClick={() => {
-                    setIsSubpartDetailEditMode(false);
-                    // 수정 취소시 편집 상태 초기화
+                    // 수정 모드 진입 시 현재 부품의 상태로 초기화
                     if (selectedSubpartDetail) {
-                      const { id, inUse } = selectedSubpartDetail;
-                      setEditedSubparts((prev) => ({
-                        ...prev,
-                        [id]: inUse,
-                      }));
+                      setEditedSubparts({
+                        [selectedSubpartDetail.id]: selectedSubpartDetail.inUse,
+                      });
                     }
+
+                    // isMain이 1인 담당자 자동 선택
+                    const mainContacts =
+                      customerContacts?.contacts
+                        ?.filter((contact) => contact.isMain === 1)
+                        .map((contact) => contact.personEmail) || [];
+                    setSelectedContacts(mainContacts);
+
+                    setIsSubpartDetailEditMode(true);
                   }}
                   disabled={isUpdating}
+                  className="mr-8"
                 >
-                  취소
+                  수정
                 </Button>
-                <Button
-                  onClick={handleSubpartDetailSave}
-                  disabled={
-                    isUpdating ||
-                    (selectedSubpartDetail
-                      ? editedSubparts[selectedSubpartDetail.id] ===
-                          undefined ||
-                        editedSubparts[selectedSubpartDetail.id] ===
-                          selectedSubpartDetail.inUse
-                      : true)
-                  }
-                >
-                  {isUpdating ? "저장 중..." : "저장"}
-                </Button>
-              </div>
-            )}
+              )}
+              {isSubpartDetailEditMode && (
+                <div className="flex items-center gap-2 mr-8">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setIsSubpartDetailEditMode(false);
+                      // 수정 취소시 편집 상태 초기화
+                      if (selectedSubpartDetail) {
+                        const { id, inUse } = selectedSubpartDetail;
+                        setEditedSubparts((prev) => ({
+                          ...prev,
+                          [id]: inUse,
+                        }));
+                      }
+                    }}
+                    disabled={isUpdating}
+                  >
+                    취소
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={handleSubpartDetailSave}
+                    disabled={
+                      isUpdating ||
+                      (selectedSubpartDetail
+                        ? editedSubparts[selectedSubpartDetail.id] ===
+                            undefined ||
+                          editedSubparts[selectedSubpartDetail.id] ===
+                            selectedSubpartDetail.inUse
+                        : true)
+                    }
+                  >
+                    {isUpdating ? "저장 중..." : "저장"}
+                  </Button>
+                </div>
+              )}
+            </div>
+            <DialogDescription>
+              부품의 상세 정보를 확인할 수 있습니다.
+            </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
@@ -1420,18 +1469,18 @@ export default function InspectionPage() {
                   <div className="flex items-center space-x-2">
                     <Switch
                       checked={
-                        selectedSubpartDetail
+                        selectedSubpartDetail &&
+                        editedSubparts[selectedSubpartDetail.id] !== undefined
                           ? editedSubparts[selectedSubpartDetail.id] === 1
-                          : false
+                          : selectedSubpartDetail?.inUse === 1
                       }
-                      onCheckedChange={(checked) => {
-                        if (selectedSubpartDetail) {
-                          setEditedSubparts((prev) => ({
-                            ...prev,
-                            [selectedSubpartDetail.id]: checked ? 1 : 0,
-                          }));
-                        }
-                      }}
+                      onCheckedChange={(checked) =>
+                        selectedSubpartDetail &&
+                        handleSubpartStatusChange(
+                          selectedSubpartDetail.id,
+                          checked ? 1 : 0
+                        )
+                      }
                       disabled={isUpdating}
                     />
                     <span
@@ -1446,7 +1495,11 @@ export default function InspectionPage() {
                       }
                     >
                       {selectedSubpartDetail &&
-                      editedSubparts[selectedSubpartDetail.id] === 1
+                      (editedSubparts[selectedSubpartDetail.id] !== undefined
+                        ? editedSubparts[selectedSubpartDetail.id] === 1
+                          ? "사용중"
+                          : "미사용중"
+                        : selectedSubpartDetail.inUse === 1)
                         ? "사용중"
                         : "미사용중"}
                     </span>
