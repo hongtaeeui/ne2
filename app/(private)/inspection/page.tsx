@@ -311,12 +311,26 @@ export default function InspectionPage() {
   const handleSaveChanges = () => {
     if (!selectedModel || !customerData?.customers[0]?.id) return;
 
-    const subpartsToUpdate = Object.entries(editedSubparts).map(
-      ([id, inUse]) => ({
+    // 실제로 변경된 부품만 필터링
+    const subpartsToUpdate = Object.entries(editedSubparts)
+      .filter(
+        ([id, inUse]) =>
+          subpartData?.items.find((item) => item.id === parseInt(id))?.inUse !==
+          inUse
+      )
+      .map(([id, inUse]) => ({
         id: parseInt(id),
         inUse,
-      })
-    );
+      }));
+
+    // 변경된 부품이 없으면 처리하지 않음
+    if (subpartsToUpdate.length === 0) {
+      // UI 상태 초기화
+      setIsEditMode(false);
+      setSelectedContacts([]);
+      setEditedSubparts({});
+      return;
+    }
 
     updateSubpartsStatus(
       {
@@ -1019,10 +1033,13 @@ export default function InspectionPage() {
                               <Table>
                                 <TableHeader>
                                   <TableRow>
-                                    <TableHead className="w-[30%] min-w-[150px] text-left">
+                                    <TableHead className="w-[10%] min-w-[80px] text-left">
+                                      부품번호
+                                    </TableHead>
+                                    <TableHead className="w-[25%] min-w-[150px] text-left">
                                       부품명
                                     </TableHead>
-                                    <TableHead className="w-[20%] min-w-[100px] text-center">
+                                    <TableHead className="w-[15%] min-w-[100px] text-center">
                                       사용여부
                                     </TableHead>
                                     {isSubpartFullView && (
@@ -1068,10 +1085,13 @@ export default function InspectionPage() {
                                     <TableBody>
                                       {subpartData.items.map((subpart) => (
                                         <TableRow key={subpart.id}>
-                                          <TableCell className="w-[30%] min-w-[150px] text-left">
+                                          <TableCell className="w-[10%] min-w-[80px] text-left">
+                                            {subpart.id}
+                                          </TableCell>
+                                          <TableCell className="w-[25%] min-w-[150px] text-left">
                                             {subpart.name}
                                           </TableCell>
-                                          <TableCell className="w-[20%] min-w-[100px] text-center">
+                                          <TableCell className="w-[15%] min-w-[100px] text-center">
                                             {isSubpartFullView && isEditMode ? (
                                               <div className="flex items-center justify-center space-x-2">
                                                 <Switch
@@ -1249,6 +1269,10 @@ export default function InspectionPage() {
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <div className="col-span-1 font-medium">부품번호</div>
+              <div className="col-span-3">{selectedSubpartDetail?.id}</div>
+            </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <div className="col-span-1 font-medium">부품명</div>
               <div className="col-span-3">{selectedSubpartDetail?.name}</div>
