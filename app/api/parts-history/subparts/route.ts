@@ -15,7 +15,7 @@ interface UpdateSubpartsStatusRequest {
   }[];
 }
 
-export async function POST(request: NextRequest) {
+export async function PUT(request: NextRequest) {
   try {
     const authHeader = request.headers.get("authorization");
 
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
 
     const body: UpdateSubpartsStatusRequest = await request.json();
 
-    const response = await externalAxiosClient.post(
+    const response = await externalAxiosClient.put(
       "http://localhost:3005/v1/parts-history/subparts",
       body,
       {

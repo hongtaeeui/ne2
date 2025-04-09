@@ -73,7 +73,7 @@ interface UpdateSubpartsStatusResponse {
 export const useUpdateSubpartsStatus = () => {
   return useMutation({
     mutationFn: async (data: UpdateSubpartsStatusRequest) => {
-      const response = await axiosClient.post<UpdateSubpartsStatusResponse>(
+      const response = await axiosClient.put<UpdateSubpartsStatusResponse>(
         "/parts-history/subparts",
         data
       );
