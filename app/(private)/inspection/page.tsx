@@ -467,7 +467,7 @@ export default function InspectionPage() {
   }, [selectedSubpartDetail, isSubpartDetailEditMode, isSubpartDetailOpen]);
 
   return (
-    <div className="p-6">
+    <div className="p-6 overflow-x-auto">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">인스펙션</h1>
         <Button
@@ -571,16 +571,18 @@ export default function InspectionPage() {
               </CardHeader>
               <CardContent className="pt-4">
                 <div
-                  className="grid gap-4"
+                  className="grid gap-4 overflow-hidden"
                   style={{
                     gridTemplateColumns:
                       isModelFullView || isSubpartFullView
                         ? "1fr"
                         : selectedModel && isSubpartListVisible
-                        ? "1fr 1fr 1fr"
+                        ? "1fr"
                         : selectedInspection && isModelListVisible
-                        ? "1fr 1fr"
+                        ? "1fr"
                         : "1fr",
+                    display:
+                      isSubpartFullView || isModelFullView ? "block" : "grid",
                   }}
                 >
                   {/* 인스펙션 리스트 */}
@@ -595,20 +597,20 @@ export default function InspectionPage() {
                         : selectedInspection
                         ? "hidden lg:block"
                         : "block"
-                    }`}
+                    } overflow-hidden`}
                   >
-                    <div className="rounded-md border shadow-sm bg-white">
+                    <div className="rounded-md border shadow-sm bg-white max-w-full">
                       <div className="relative w-full overflow-x-auto">
                         <Table>
                           <TableHeader>
                             <TableRow>
-                              <TableHead className="w-[40%] text-left">
+                              <TableHead className="w-[40%] text-left whitespace-nowrap">
                                 이름
                               </TableHead>
-                              <TableHead className="w-[40%] hidden md:table-cell text-left">
+                              <TableHead className="w-[40%] hidden md:table-cell text-left whitespace-nowrap">
                                 고객사
                               </TableHead>
-                              <TableHead className="w-[20%] text-center">
+                              <TableHead className="w-[20%] text-center whitespace-nowrap">
                                 모델 수
                               </TableHead>
                             </TableRow>
@@ -635,10 +637,10 @@ export default function InspectionPage() {
                                         handleInspectionClick(inspection.id)
                                       }
                                     >
-                                      <TableCell className="w-[40%] text-left font-medium">
+                                      <TableCell className="w-[40%] text-left font-medium truncate max-w-[250px]">
                                         {inspection.name}
                                       </TableCell>
-                                      <TableCell className="w-[40%] hidden md:table-cell text-left">
+                                      <TableCell className="w-[40%] hidden md:table-cell text-left truncate max-w-[250px]">
                                         {customerData?.customers.find(
                                           (customer) =>
                                             customer.id ===
@@ -693,27 +695,28 @@ export default function InspectionPage() {
                     </div>
                   </div>
 
-                  {/* 기존 코드의 나머지 부분 */}
-                  {/* 모델 리스트 및 부품 리스트는 유지 */}
+                  {/* 모델 리스트 */}
                   {selectedInspection && isModelListVisible && (
                     <div
                       className={`lg:block ${
                         selectedModel && !isModelFullView
                           ? "hidden lg:block"
                           : "block"
-                      }`}
+                      } overflow-hidden w-full`}
                     >
                       <Card
                         className={
                           isModelFullView
                             ? "fixed inset-0 z-50 m-4 transition-all duration-300"
-                            : "transition-all duration-300"
+                            : "transition-all duration-300 max-w-full"
                         }
                       >
-                        <CardHeader className="flex flex-row items-center justify-between">
-                          <div className="flex items-center space-x-4">
-                            <CardTitle>모델 리스트</CardTitle>
-                            <CardDescription>
+                        <CardHeader className="flex flex-row items-center justify-between flex-wrap sm:flex-nowrap">
+                          <div className="flex flex-row items-center space-x-4 w-full sm:w-auto">
+                            <CardTitle className="whitespace-nowrap">
+                              모델 리스트
+                            </CardTitle>
+                            <CardDescription className="whitespace-normal sm:whitespace-nowrap">
                               {selectedInspection
                                 ? `선택된 인스펙션의 모델 목록 (${
                                     modelData?.models?.length || 0
@@ -721,7 +724,7 @@ export default function InspectionPage() {
                                 : "인스펙션을 선택해주세요"}
                             </CardDescription>
                           </div>
-                          <div className="flex items-center space-x-2">
+                          <div className="flex items-center space-x-2 mt-2 sm:mt-0">
                             <Button
                               variant="ghost"
                               size="icon"
@@ -788,33 +791,33 @@ export default function InspectionPage() {
                             </div>
                           )}
                           <div className="rounded-md border">
-                            <div className="relative w-full overflow-auto">
+                            <div className="relative w-full overflow-x-auto">
                               <Table>
                                 <TableHeader>
                                   <TableRow>
-                                    <TableHead className="w-[40%] min-w-[200px] text-left">
+                                    <TableHead className="w-[40%] min-w-[200px] text-left whitespace-nowrap">
                                       모델명
                                     </TableHead>
-                                    <TableHead className="w-[10%] min-w-[80px] text-center">
+                                    <TableHead className="w-[10%] min-w-[80px] text-center whitespace-nowrap">
                                       부품 수
                                     </TableHead>
                                     {isModelFullView && (
                                       <>
-                                        <TableHead className="w-[10%] min-w-[80px] text-center hidden md:table-cell">
+                                        <TableHead className="w-[10%] min-w-[80px] text-center hidden md:table-cell whitespace-nowrap">
                                           상태
                                         </TableHead>
-                                        <TableHead className="w-[20%] min-w-[150px] text-left hidden md:table-cell">
+                                        <TableHead className="w-[20%] min-w-[150px] text-left hidden md:table-cell whitespace-nowrap">
                                           고객사
                                         </TableHead>
-                                        <TableHead className="w-[10%] min-w-[100px] text-center hidden md:table-cell">
+                                        <TableHead className="w-[10%] min-w-[100px] text-center hidden md:table-cell whitespace-nowrap">
                                           생성일
                                         </TableHead>
-                                        <TableHead className="w-[10%] min-w-[100px] text-center hidden md:table-cell">
+                                        <TableHead className="w-[10%] min-w-[100px] text-center hidden md:table-cell whitespace-nowrap">
                                           수정일
                                         </TableHead>
                                       </>
                                     )}
-                                    <TableHead className="w-[10%] min-w-[80px] text-center">
+                                    <TableHead className="w-[10%] min-w-[80px] text-center whitespace-nowrap">
                                       상세보기
                                     </TableHead>
                                   </TableRow>
@@ -845,7 +848,7 @@ export default function InspectionPage() {
                                             handleModelClick(model.id)
                                           }
                                         >
-                                          <TableCell className="w-[40%] min-w-[200px] text-left">
+                                          <TableCell className="w-[40%] min-w-[200px] text-left truncate max-w-[250px]">
                                             {model.name}
                                           </TableCell>
                                           <TableCell className="w-[10%] min-w-[80px] text-center">
@@ -853,22 +856,22 @@ export default function InspectionPage() {
                                           </TableCell>
                                           {isModelFullView && (
                                             <>
-                                              <TableCell className="w-[10%] min-w-[80px] text-center hidden md:table-cell">
+                                              <TableCell className="w-[10%] min-w-[80px] text-center hidden md:table-cell truncate">
                                                 {model.status}
                                               </TableCell>
-                                              <TableCell className="w-[20%] min-w-[150px] text-left hidden md:table-cell">
+                                              <TableCell className="w-[20%] min-w-[150px] text-left hidden md:table-cell truncate max-w-[150px]">
                                                 {customerData?.customers.find(
                                                   (customer) =>
                                                     customer.id ===
                                                     model.customerId
                                                 )?.name || "알 수 없음"}
                                               </TableCell>
-                                              <TableCell className="w-[10%] min-w-[100px] text-center hidden md:table-cell">
+                                              <TableCell className="w-[10%] min-w-[100px] text-center hidden md:table-cell whitespace-nowrap">
                                                 {formatDateOnly(
                                                   model.createdAt
                                                 )}
                                               </TableCell>
-                                              <TableCell className="w-[10%] min-w-[100px] text-center hidden md:table-cell">
+                                              <TableCell className="w-[10%] min-w-[100px] text-center hidden md:table-cell whitespace-nowrap">
                                                 {formatDateOnly(
                                                   model.updatedAt
                                                 )}
@@ -904,34 +907,38 @@ export default function InspectionPage() {
                     </div>
                   )}
 
+                  {/* 부품 리스트 */}
                   {selectedModel && isSubpartListVisible && (
                     <div
-                      className={`lg:block ${
+                      className={`${
                         isModelFullView ? "hidden" : "block"
-                      }`}
+                      } overflow-hidden w-full`}
                     >
                       <Card
                         className={
                           isSubpartFullView
-                            ? "fixed inset-0 z-50 m-4 transition-all duration-300"
-                            : "transition-all duration-300"
+                            ? "fixed inset-0 z-50 m-4 transition-all duration-300 overflow-auto"
+                            : "transition-all duration-300 max-w-full"
                         }
                       >
-                        <CardHeader className="flex flex-row items-center justify-between">
-                          <div className="flex items-center space-x-4">
-                            <CardTitle>부품 리스트</CardTitle>
-                            <CardDescription>
+                        <CardHeader className="flex flex-row items-center justify-between flex-wrap sm:flex-nowrap">
+                          <div className="flex flex-row items-center space-x-4 w-full sm:w-auto">
+                            <CardTitle className="whitespace-nowrap">
+                              부품 리스트
+                            </CardTitle>
+                            <CardDescription className="whitespace-normal sm:whitespace-nowrap">
                               {`선택된 모델의 부품 목록 (${
                                 subpartData?.total || 0
                               }개)`}
                             </CardDescription>
                           </div>
-                          <div className="flex items-center space-x-2">
+                          <div className="flex items-center flex-wrap gap-2 mt-2 sm:mt-0 justify-end">
                             {isSubpartFullView && (
                               <>
                                 <Button
                                   variant="outline"
                                   onClick={handleEditModeToggle}
+                                  className="text-sm px-2 py-1 h-8"
                                 >
                                   {isEditMode ? "수정 취소" : "수정"}
                                 </Button>
@@ -940,6 +947,7 @@ export default function InspectionPage() {
                                     variant="default"
                                     onClick={handleSaveClick}
                                     disabled={!hasChanges || isUpdating}
+                                    className="text-sm px-2 py-1 h-8"
                                   >
                                     {isUpdating ? "저장 중..." : "저장"}
                                   </Button>
@@ -951,17 +959,6 @@ export default function InspectionPage() {
                               size="icon"
                               onClick={() => {
                                 setIsSubpartFullView(!isSubpartFullView);
-                                if (!isSubpartFullView) {
-                                  setIsEditMode(false);
-                                  setEditedSubparts({});
-                                  setSelectedContacts([]);
-                                  // 모바일에서는 선택된 모델 초기화
-                                  if (window.innerWidth < 1024) {
-                                    setSelectedModel(null);
-                                    // 인스펙션 리스트가 표시될 수 있도록 모델 리스트 표시
-                                    setIsModelListVisible(true);
-                                  }
-                                }
                               }}
                             >
                               {isSubpartFullView ? (
@@ -993,7 +990,9 @@ export default function InspectionPage() {
                         </CardHeader>
                         <CardContent
                           className={
-                            isSubpartFullView ? "h-[calc(100vh-150px)]" : ""
+                            isSubpartFullView
+                              ? "h-[calc(100vh-150px)] overflow-auto"
+                              : "overflow-auto"
                           }
                         >
                           {isSubpartFullView && (
@@ -1129,173 +1128,176 @@ export default function InspectionPage() {
                             </div>
                           )}
                           <div className="rounded-md border">
-                            <div className="relative w-full overflow-auto">
-                              <Table>
-                                <TableHeader>
-                                  <TableRow>
-                                    <TableHead className="w-[10%] min-w-[80px] text-left">
-                                      부품번호
-                                    </TableHead>
-                                    <TableHead className="w-[25%] min-w-[150px] text-left">
-                                      부품명
-                                    </TableHead>
-                                    <TableHead className="w-[15%] min-w-[100px] text-center">
-                                      사용여부
-                                    </TableHead>
-                                    {isSubpartFullView && (
-                                      <>
-                                        <TableHead className="w-[20%] min-w-[150px] text-left hidden md:table-cell">
-                                          설명
-                                        </TableHead>
-                                        <TableHead className="w-[10%] min-w-[80px] text-center hidden md:table-cell">
-                                          YOLO ID
-                                        </TableHead>
-                                        <TableHead className="w-[10%] min-w-[80px] text-center hidden md:table-cell">
-                                          객체 수
-                                        </TableHead>
-                                        <TableHead className="w-[10%] min-w-[80px] text-center hidden md:table-cell">
-                                          임계값
-                                        </TableHead>
-                                        <TableHead className="w-[10%] min-w-[100px] text-center hidden md:table-cell">
-                                          생성일
-                                        </TableHead>
-                                        <TableHead className="w-[10%] min-w-[100px] text-center hidden md:table-cell">
-                                          수정일
-                                        </TableHead>
-                                      </>
-                                    )}
-                                    <TableHead className="w-[10%] min-w-[80px] text-center">
-                                      상세보기
-                                    </TableHead>
-                                  </TableRow>
-                                </TableHeader>
-                              </Table>
-                              <div
-                                className={`overflow-auto ${
-                                  isSubpartFullView
-                                    ? "h-[calc(100vh-250px)]"
-                                    : "h-[calc(100vh-500px)]"
-                                }`}
-                              >
-                                {isSubpartLoading ? (
-                                  <LoadingSpinner />
-                                ) : subpartData?.items &&
-                                  subpartData.items.length > 0 ? (
-                                  <Table>
-                                    <TableBody>
-                                      {subpartData.items.map((subpart) => (
-                                        <TableRow key={subpart.id}>
-                                          <TableCell className="w-[10%] min-w-[80px] text-left">
-                                            {subpart.id}
-                                          </TableCell>
-                                          <TableCell className="w-[25%] min-w-[150px] text-left">
-                                            {subpart.name}
-                                          </TableCell>
-                                          <TableCell className="w-[15%] min-w-[100px] text-center">
-                                            {isSubpartFullView && isEditMode ? (
-                                              <div className="flex items-center justify-center space-x-2">
-                                                <Switch
-                                                  checked={
-                                                    editedSubparts[
+                            <div className="relative w-full overflow-x-auto">
+                              <div className="overflow-x-auto">
+                                <Table>
+                                  <TableHeader>
+                                    <TableRow>
+                                      <TableHead className="w-[10%] min-w-[80px] text-left whitespace-nowrap">
+                                        부품번호
+                                      </TableHead>
+                                      <TableHead className="w-[25%] min-w-[150px] text-left whitespace-nowrap">
+                                        부품명
+                                      </TableHead>
+                                      <TableHead className="w-[15%] min-w-[100px] text-center whitespace-nowrap">
+                                        사용여부
+                                      </TableHead>
+                                      {isSubpartFullView && (
+                                        <>
+                                          <TableHead className="w-[20%] min-w-[150px] text-left hidden md:table-cell whitespace-nowrap">
+                                            설명
+                                          </TableHead>
+                                          <TableHead className="w-[10%] min-w-[80px] text-center hidden md:table-cell whitespace-nowrap">
+                                            YOLO ID
+                                          </TableHead>
+                                          <TableHead className="w-[10%] min-w-[80px] text-center hidden md:table-cell whitespace-nowrap">
+                                            객체 수
+                                          </TableHead>
+                                          <TableHead className="w-[10%] min-w-[80px] text-center hidden md:table-cell whitespace-nowrap">
+                                            임계값
+                                          </TableHead>
+                                          <TableHead className="w-[10%] min-w-[100px] text-center hidden md:table-cell whitespace-nowrap">
+                                            생성일
+                                          </TableHead>
+                                          <TableHead className="w-[10%] min-w-[100px] text-center hidden md:table-cell whitespace-nowrap">
+                                            수정일
+                                          </TableHead>
+                                        </>
+                                      )}
+                                      <TableHead className="w-[10%] min-w-[80px] text-center whitespace-nowrap">
+                                        상세보기
+                                      </TableHead>
+                                    </TableRow>
+                                  </TableHeader>
+                                </Table>
+                                <div
+                                  className={`overflow-auto ${
+                                    isSubpartFullView
+                                      ? "h-[calc(100vh-250px)]"
+                                      : "h-[calc(100vh-500px)]"
+                                  }`}
+                                >
+                                  {isSubpartLoading ? (
+                                    <LoadingSpinner />
+                                  ) : subpartData?.items &&
+                                    subpartData.items.length > 0 ? (
+                                    <Table>
+                                      <TableBody>
+                                        {subpartData.items.map((subpart) => (
+                                          <TableRow key={subpart.id}>
+                                            <TableCell className="w-[10%] min-w-[80px] text-left">
+                                              {subpart.id}
+                                            </TableCell>
+                                            <TableCell className="w-[25%] min-w-[150px] text-left truncate max-w-[200px]">
+                                              {subpart.name}
+                                            </TableCell>
+                                            <TableCell className="w-[15%] min-w-[100px] text-center">
+                                              {isSubpartFullView &&
+                                              isEditMode ? (
+                                                <div className="flex items-center justify-center space-x-2">
+                                                  <Switch
+                                                    checked={
+                                                      editedSubparts[
+                                                        subpart.id
+                                                      ] !== undefined
+                                                        ? editedSubparts[
+                                                            subpart.id
+                                                          ] === 1
+                                                        : subpart.inUse === 1
+                                                    }
+                                                    onCheckedChange={(
+                                                      checked
+                                                    ) =>
+                                                      handleSubpartStatusChange(
+                                                        subpart.id,
+                                                        checked ? 1 : 0
+                                                      )
+                                                    }
+                                                    disabled={isUpdating}
+                                                  />
+                                                  <span
+                                                    className={
+                                                      editedSubparts[
+                                                        subpart.id
+                                                      ] !== undefined &&
+                                                      subpart.inUse !==
+                                                        editedSubparts[
+                                                          subpart.id
+                                                        ]
+                                                        ? "text-blue-500 font-medium"
+                                                        : ""
+                                                    }
+                                                  >
+                                                    {editedSubparts[
                                                       subpart.id
                                                     ] !== undefined
                                                       ? editedSubparts[
                                                           subpart.id
                                                         ] === 1
-                                                      : subpart.inUse === 1
-                                                  }
-                                                  onCheckedChange={(checked) =>
-                                                    handleSubpartStatusChange(
-                                                      subpart.id,
-                                                      checked ? 1 : 0
-                                                    )
-                                                  }
-                                                  disabled={isUpdating}
-                                                />
+                                                      : subpart.inUse === 1}
+                                                  </span>
+                                                </div>
+                                              ) : (
                                                 <span
-                                                  className={
-                                                    editedSubparts[
-                                                      subpart.id
-                                                    ] !== undefined &&
-                                                    subpart.inUse !==
-                                                      editedSubparts[subpart.id]
-                                                      ? "text-blue-500 font-medium"
-                                                      : ""
-                                                  }
+                                                  className={`px-2 py-1 rounded-full text-xs ${getInUseStatusColor(
+                                                    subpart.inUse
+                                                  )}`}
                                                 >
-                                                  {editedSubparts[
-                                                    subpart.id
-                                                  ] !== undefined
-                                                    ? editedSubparts[
-                                                        subpart.id
-                                                      ] === 1
-                                                      ? "사용중"
-                                                      : "미사용중"
-                                                    : subpart.inUse === 1
+                                                  {subpart.inUse === 1
                                                     ? "사용중"
                                                     : "미사용중"}
                                                 </span>
-                                              </div>
-                                            ) : (
-                                              <span
-                                                className={`px-2 py-1 rounded-full text-xs ${getInUseStatusColor(
-                                                  subpart.inUse
-                                                )}`}
-                                              >
-                                                {subpart.inUse === 1
-                                                  ? "사용중"
-                                                  : "미사용중"}
-                                              </span>
+                                              )}
+                                            </TableCell>
+                                            {isSubpartFullView && (
+                                              <>
+                                                <TableCell className="w-[20%] min-w-[150px] text-left hidden md:table-cell truncate max-w-[200px]">
+                                                  {subpart.desc}
+                                                </TableCell>
+                                                <TableCell className="w-[10%] min-w-[80px] text-center hidden md:table-cell">
+                                                  {subpart.yoloID}
+                                                </TableCell>
+                                                <TableCell className="w-[10%] min-w-[80px] text-center hidden md:table-cell">
+                                                  {subpart.numObjects}
+                                                </TableCell>
+                                                <TableCell className="w-[10%] min-w-[80px] text-center hidden md:table-cell">
+                                                  {subpart.threshold}
+                                                </TableCell>
+                                                <TableCell className="w-[10%] min-w-[100px] text-center hidden md:table-cell whitespace-nowrap">
+                                                  {formatDateOnly(
+                                                    subpart.createdAt
+                                                  )}
+                                                </TableCell>
+                                                <TableCell className="w-[10%] min-w-[100px] text-center hidden md:table-cell whitespace-nowrap">
+                                                  {formatDateOnly(
+                                                    subpart.updatedAt
+                                                  )}
+                                                </TableCell>
+                                              </>
                                             )}
-                                          </TableCell>
-                                          {isSubpartFullView && (
-                                            <>
-                                              <TableCell className="w-[20%] min-w-[150px] text-left hidden md:table-cell">
-                                                {subpart.desc}
-                                              </TableCell>
-                                              <TableCell className="w-[10%] min-w-[80px] text-center hidden md:table-cell">
-                                                {subpart.yoloID}
-                                              </TableCell>
-                                              <TableCell className="w-[10%] min-w-[80px] text-center hidden md:table-cell">
-                                                {subpart.numObjects}
-                                              </TableCell>
-                                              <TableCell className="w-[10%] min-w-[80px] text-center hidden md:table-cell">
-                                                {subpart.threshold}
-                                              </TableCell>
-                                              <TableCell className="w-[10%] min-w-[100px] text-center hidden md:table-cell">
-                                                {formatDateOnly(
-                                                  subpart.createdAt
-                                                )}
-                                              </TableCell>
-                                              <TableCell className="w-[10%] min-w-[100px] text-center hidden md:table-cell">
-                                                {formatDateOnly(
-                                                  subpart.updatedAt
-                                                )}
-                                              </TableCell>
-                                            </>
-                                          )}
-                                          <TableCell className="w-[10%] min-w-[80px] text-center">
-                                            <Button
-                                              variant="outline"
-                                              size="sm"
-                                              onClick={() =>
-                                                handleSubpartDetailClick(
-                                                  subpart
-                                                )
-                                              }
-                                            >
-                                              상세보기
-                                            </Button>
-                                          </TableCell>
-                                        </TableRow>
-                                      ))}
-                                    </TableBody>
-                                  </Table>
-                                ) : (
-                                  <div className="flex items-center justify-center h-32 text-gray-500">
-                                    부품이 없습니다.
-                                  </div>
-                                )}
+                                            <TableCell className="w-[10%] min-w-[80px] text-center">
+                                              <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() =>
+                                                  handleSubpartDetailClick(
+                                                    subpart
+                                                  )
+                                                }
+                                              >
+                                                상세보기
+                                              </Button>
+                                            </TableCell>
+                                          </TableRow>
+                                        ))}
+                                      </TableBody>
+                                    </Table>
+                                  ) : (
+                                    <div className="flex items-center justify-center h-32 text-gray-500">
+                                      부품이 없습니다.
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           </div>
