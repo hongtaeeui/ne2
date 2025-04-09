@@ -37,11 +37,7 @@ import {
 } from "@/components/ui/table";
 import { useGetInspection } from "@/lib/hooks/useInspection";
 import type { Inspection } from "@/lib/hooks/useInspection";
-import {
-  useGetContactList,
-  useGetCustomer,
-  useGetCustomerList,
-} from "@/lib/hooks/useCustomer";
+import { useGetContactList, useGetCustomer } from "@/lib/hooks/useCustomer";
 import {
   Select,
   SelectContent,
