@@ -13,7 +13,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="ko" suppressHydrationWarning>
       <body className="bg-background overscroll-none font-sans antialiased">
         <ClientLayout>{children}</ClientLayout>
       </body>

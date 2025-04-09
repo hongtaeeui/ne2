@@ -61,7 +61,8 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { Switch } from "@/components/ui/switch";
 import { X } from "lucide-react";
 import { formatDate, formatDateOnly } from "@/lib/dateUtils";
-
+import useAuthStore from "@/lib/store/authStore";
+import useIpStore from "@/lib/store/ipStore";
 // inUse 상태에 따른 색상 반환 함수
 function getInUseStatusColor(inUse: number | undefined) {
   if (inUse === 1) {
@@ -74,7 +75,14 @@ function getInUseStatusColor(inUse: number | undefined) {
 export default function InspectionPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  const { user } = useAuthStore();
+  const { ip } = useIpStore();
+  console.log("user", user);
+  console.log("ip", ip);
+
   const [searchTerm, setSearchTerm] = useState("");
+
   const [selectedInspection, setSelectedInspection] = useState<number | null>(
     null
   );
@@ -148,12 +156,12 @@ export default function InspectionPage() {
       : undefined
   );
 
-  console.log("subpartData", subpartData);
-  console.log("isSubpartLoading", isSubpartLoading);
+  // // console.log("subpartData", subpartData);
+  // // console.log("isSubpartLoading", isSubpartLoading);
 
-  //  고객사 목록 조회
-  const { data: allCustomers } = useGetCustomer({ page, limit });
-  console.log("allCustomers", allCustomers);
+  // //  고객사 목록 조회
+  // const { data: allCustomers } = useGetCustomer({ page, limit });
+  // // console.log("allCustomers", allCustomers);
 
   // 특정 고객의 사용자 목록 조회
   const { data: customerUsers } = useGetCustomerList({
@@ -340,10 +348,10 @@ export default function InspectionPage() {
       {
         customerId: customerData.customers[0].id,
         modelId: selectedModel,
-        userId: 5, // 실제 사용자 ID로 변경 필요
-        person: "홍길동", // 실제 사용자 이름으로 변경 필요
-        ip: "192.168.0.1", // 실제 IP로 변경 필요
-        reason: selectedSubpartReason || "부품 상태 수정", // 사용자 입력 사유 또는 기본값
+        userId: user?.id || 0,
+        person: user?.name || "",
+        ip: ip || "0.0.0.0", // IP 스토어에서 가져온 IP 사용
+        reason: selectedSubpartReason || "부품 상태 수정",
         mailSendAddress: selectedContacts,
         subparts: subpartsToUpdate,
       },
@@ -437,10 +445,10 @@ export default function InspectionPage() {
       {
         customerId: customerData.customers[0].id,
         modelId: selectedModel,
-        userId: 5, // 실제 사용자 ID로 변경 필요
-        person: "홍길동", // 실제 사용자 이름으로 변경 필요
-        ip: "192.168.0.1", // 실제 IP로 변경 필요
-        reason: modificationReason, // 사용자 입력 사유
+        userId: user?.id || 0,
+        person: user?.name || "",
+        ip: ip || "0.0.0.0", // IP 스토어에서 가져온 IP 사용
+        reason: modificationReason,
         mailSendAddress: selectedContacts,
         subparts: subpartsToUpdate,
       },
@@ -1655,59 +1663,57 @@ export default function InspectionPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>수정사항 확인</DialogTitle>
-            <DialogDescription>
-              <div className="space-y-4">
-                <div>
-                  <h4 className="font-medium mb-2">수정된 부품 목록:</h4>
-                  <ul className="list-disc pl-4 space-y-1">
-                    {Object.entries(editedSubparts)
-                      .filter(
-                        ([id, inUse]) =>
-                          subpartData?.items.find(
-                            (item) => item.id === parseInt(id)
-                          )?.inUse !== inUse
-                      )
-                      .map(([id, inUse]) => {
-                        const subpart = subpartData?.items.find(
-                          (item) => item.id === parseInt(id)
-                        );
-                        return (
-                          <li key={id}>
-                            {subpart?.name}:{" "}
-                            {subpart?.inUse === 1 ? "사용중" : "미사용중"} →{" "}
-                            {inUse === 1 ? "사용중" : "미사용중"}
-                          </li>
-                        );
-                      })}
-                  </ul>
-                </div>
-                <div>
-                  <h4 className="font-medium mb-2">알림 받을 담당자:</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedContacts.map((email) => {
-                      const contact = customerContacts?.contacts?.find(
-                        (c) => c.personEmail === email
-                      );
-                      return (
-                        <Badge key={email} variant="secondary">
-                          {contact?.person} ({email})
-                        </Badge>
-                      );
-                    })}
-                  </div>
-                </div>
-                <div>
-                  <h4 className="font-medium mb-2">수정 사유:</h4>
-                  <Input
-                    value={modificationReason}
-                    onChange={(e) => setModificationReason(e.target.value)}
-                    placeholder="수정 사유를 입력하세요"
-                    className="w-full"
-                  />
-                </div>
-              </div>
-            </DialogDescription>
           </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <h4 className="font-medium mb-2">수정된 부품 목록:</h4>
+              <ul className="list-disc pl-4 space-y-1">
+                {Object.entries(editedSubparts)
+                  .filter(
+                    ([id, inUse]) =>
+                      subpartData?.items.find(
+                        (item) => item.id === parseInt(id)
+                      )?.inUse !== inUse
+                  )
+                  .map(([id, inUse]) => {
+                    const subpart = subpartData?.items.find(
+                      (item) => item.id === parseInt(id)
+                    );
+                    return (
+                      <li key={id}>
+                        {subpart?.name}:{" "}
+                        {subpart?.inUse === 1 ? "사용중" : "미사용중"} →{" "}
+                        {inUse === 1 ? "사용중" : "미사용중"}
+                      </li>
+                    );
+                  })}
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-medium mb-2">알림 받을 담당자:</h4>
+              <div className="flex flex-wrap gap-2">
+                {selectedContacts.map((email) => {
+                  const contact = customerContacts?.contacts?.find(
+                    (c) => c.personEmail === email
+                  );
+                  return (
+                    <Badge key={email} variant="secondary">
+                      {contact?.person} ({email})
+                    </Badge>
+                  );
+                })}
+              </div>
+            </div>
+            <div>
+              <h4 className="font-medium mb-2">수정 사유:</h4>
+              <Input
+                value={modificationReason}
+                onChange={(e) => setModificationReason(e.target.value)}
+                placeholder="수정 사유를 입력하세요"
+                className="w-full"
+              />
+            </div>
+          </div>
           <DialogFooter>
             <Button
               variant="outline"
@@ -1728,52 +1734,48 @@ export default function InspectionPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>부품 수정사항 확인</DialogTitle>
-            <DialogDescription>
-              <div className="space-y-4">
-                <div>
-                  <h4 className="font-medium mb-2">수정사항:</h4>
-                  {selectedSubpartDetail && (
-                    <div className="p-2 bg-gray-50 rounded-md">
-                      <p>
-                        {selectedSubpartDetail.name}:{" "}
-                        {selectedSubpartDetail.inUse === 1
-                          ? "사용중"
-                          : "미사용중"}{" "}
-                        →{" "}
-                        {editedSubparts[selectedSubpartDetail.id] === 1
-                          ? "사용중"
-                          : "미사용중"}
-                      </p>
-                    </div>
-                  )}
-                </div>
-                <div>
-                  <h4 className="font-medium mb-2">알림 받을 담당자:</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedContacts.map((email) => {
-                      const contact = customerContacts?.contacts?.find(
-                        (c) => c.personEmail === email
-                      );
-                      return (
-                        <Badge key={email} variant="secondary">
-                          {contact?.person} ({email})
-                        </Badge>
-                      );
-                    })}
-                  </div>
-                </div>
-                <div>
-                  <h4 className="font-medium mb-2">수정 사유:</h4>
-                  <Input
-                    value={selectedSubpartReason}
-                    onChange={(e) => setSelectedSubpartReason(e.target.value)}
-                    placeholder="수정 사유를 입력하세요"
-                    className="w-full"
-                  />
-                </div>
-              </div>
-            </DialogDescription>
           </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <h4 className="font-medium mb-2">수정사항:</h4>
+              {selectedSubpartDetail && (
+                <div className="p-2 bg-gray-50 rounded-md">
+                  <p>
+                    {selectedSubpartDetail.name}:{" "}
+                    {selectedSubpartDetail.inUse === 1 ? "사용중" : "미사용중"}{" "}
+                    →{" "}
+                    {editedSubparts[selectedSubpartDetail.id] === 1
+                      ? "사용중"
+                      : "미사용중"}
+                  </p>
+                </div>
+              )}
+            </div>
+            <div>
+              <h4 className="font-medium mb-2">알림 받을 담당자:</h4>
+              <div className="flex flex-wrap gap-2">
+                {selectedContacts.map((email) => {
+                  const contact = customerContacts?.contacts?.find(
+                    (c) => c.personEmail === email
+                  );
+                  return (
+                    <Badge key={email} variant="secondary">
+                      {contact?.person} ({email})
+                    </Badge>
+                  );
+                })}
+              </div>
+            </div>
+            <div>
+              <h4 className="font-medium mb-2">수정 사유:</h4>
+              <Input
+                value={selectedSubpartReason}
+                onChange={(e) => setSelectedSubpartReason(e.target.value)}
+                placeholder="수정 사유를 입력하세요"
+                className="w-full"
+              />
+            </div>
+          </div>
           <DialogFooter>
             <Button
               variant="outline"
