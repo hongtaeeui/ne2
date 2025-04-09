@@ -183,24 +183,26 @@ export function SubpartList({ modelId }: SubpartListProps) {
     <Card
       className={
         isSubpartFullView
-          ? "fixed inset-0 z-50 m-4 transition-all duration-300 overflow-hidden max-h-[100vh]"
-          : "transition-all duration-300 max-w-full"
+          ? "fixed inset-0 z-50 sm:m-4 transition-all duration-300 overflow-hidden max-h-[100vh]"
+          : "transition-all duration-300 max-w-full rounded-none"
       }
     >
-      <CardHeader className="flex flex-row items-center justify-between flex-wrap sm:flex-nowrap sticky top-0 bg-white z-10">
-        <div className="flex flex-row items-center space-x-4 w-full sm:w-auto">
-          <CardTitle className="whitespace-nowrap">부품 리스트</CardTitle>
-          <CardDescription className="whitespace-normal sm:whitespace-nowrap">
+      <CardHeader className="flex flex-row items-center justify-between flex-wrap sm:flex-nowrap sticky top-0 bg-white z-10 p-2 sm:p-6">
+        <div className="flex flex-row items-center space-x-2 sm:space-x-4 w-full sm:w-auto">
+          <CardTitle className="whitespace-nowrap text-base sm:text-lg">
+            부품 리스트
+          </CardTitle>
+          <CardDescription className="whitespace-normal sm:whitespace-nowrap text-xs sm:text-sm">
             {`선택된 모델의 부품 목록 (${subpartData?.total || 0}개)`}
           </CardDescription>
         </div>
-        <div className="flex items-center flex-wrap gap-2 mt-2 sm:mt-0 justify-end">
+        <div className="flex items-center flex-wrap gap-1 sm:gap-2 mt-2 sm:mt-0 justify-end">
           {isSubpartFullView && (
             <>
               <Button
                 variant="outline"
                 onClick={handleEditModeToggle}
-                className="text-sm px-2 py-1 h-8"
+                className="text-xs sm:text-sm px-2 py-1 h-7 sm:h-8"
                 disabled={isUpdating}
               >
                 {isEditMode ? "수정 취소" : "수정"}
@@ -210,7 +212,7 @@ export function SubpartList({ modelId }: SubpartListProps) {
                   variant="default"
                   onClick={handleSaveClick}
                   disabled={!hasChanges || isUpdating}
-                  className="text-sm px-2 py-1 h-8"
+                  className="text-xs sm:text-sm px-2 py-1 h-7 sm:h-8"
                 >
                   {isUpdating ? "저장 중..." : "저장"}
                 </Button>
@@ -222,6 +224,7 @@ export function SubpartList({ modelId }: SubpartListProps) {
             size="icon"
             onClick={() => toggleSubpartFullView()}
             disabled={isUpdating}
+            className="h-7 w-7 sm:h-8 sm:w-8"
           >
             {isSubpartFullView ? (
               <IconMinimize className="h-4 w-4" />
@@ -234,6 +237,7 @@ export function SubpartList({ modelId }: SubpartListProps) {
             size="icon"
             onClick={handleCloseSubpartList}
             disabled={isUpdating}
+            className="h-7 w-7 sm:h-8 sm:w-8"
           >
             <IconX className="h-4 w-4" />
           </Button>
@@ -242,12 +246,12 @@ export function SubpartList({ modelId }: SubpartListProps) {
       <CardContent
         className={
           isSubpartFullView
-            ? "overflow-y-auto pb-20 h-[calc(100vh-150px)]"
-            : "overflow-auto"
+            ? "overflow-y-auto pb-20 h-[calc(100vh-150px)] p-2 sm:p-6"
+            : "overflow-auto p-2 sm:p-6"
         }
       >
         {isSubpartFullView && (
-          <div className="mb-4 p-4 border rounded-lg bg-gray-50">
+          <div className="mb-2 sm:mb-4 p-2 sm:p-4 border rounded-lg bg-gray-50">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <div className="text-sm font-medium text-gray-500">고객사</div>
@@ -341,7 +345,7 @@ export function SubpartList({ modelId }: SubpartListProps) {
         )}
 
         {isSubpartFullView && isEditMode && hasChanges && (
-          <div className="mb-4 p-4 border rounded-lg bg-blue-50">
+          <div className="mb-2 sm:mb-4 p-2 sm:p-4 border rounded-lg bg-blue-50">
             <div className="flex justify-between items-center">
               <span className="font-medium">
                 변경된 항목:{" "}
@@ -369,13 +373,13 @@ export function SubpartList({ modelId }: SubpartListProps) {
               <Table>
                 <TableHeader className="sticky top-0 bg-white z-10">
                   <TableRow>
-                    <TableHead className="w-[10%] min-w-[80px] text-left whitespace-nowrap">
+                    <TableHead className="w-[10%] min-w-[60px] text-left whitespace-nowrap">
                       부품번호
                     </TableHead>
-                    <TableHead className="w-[25%] min-w-[150px] text-left whitespace-nowrap">
+                    <TableHead className="w-[40%] min-w-[120px] text-left whitespace-nowrap">
                       부품명
                     </TableHead>
-                    <TableHead className="w-[15%] min-w-[100px] text-center whitespace-nowrap">
+                    <TableHead className="w-[30%] min-w-[80px] text-center whitespace-nowrap">
                       사용여부
                     </TableHead>
                     {isSubpartFullView && (
@@ -400,7 +404,7 @@ export function SubpartList({ modelId }: SubpartListProps) {
                         </TableHead>
                       </>
                     )}
-                    <TableHead className="w-[10%] min-w-[80px] text-center whitespace-nowrap">
+                    <TableHead className="w-[20%] min-w-[70px] text-center whitespace-nowrap">
                       상세보기
                     </TableHead>
                   </TableRow>
@@ -416,13 +420,13 @@ export function SubpartList({ modelId }: SubpartListProps) {
                     <TableBody>
                       {subpartData.items.map((subpart) => (
                         <TableRow key={subpart.id}>
-                          <TableCell className="w-[10%] min-w-[80px] text-left">
+                          <TableCell className="w-[10%] min-w-[60px] text-left">
                             {subpart.id}
                           </TableCell>
-                          <TableCell className="w-[25%] min-w-[150px] text-left truncate max-w-[200px]">
+                          <TableCell className="w-[40%] min-w-[120px] text-left truncate max-w-[200px]">
                             {subpart.name}
                           </TableCell>
-                          <TableCell className="w-[15%] min-w-[100px] text-center">
+                          <TableCell className="w-[30%] min-w-[80px] text-center">
                             {isSubpartFullView && isEditMode ? (
                               <div className="flex items-center justify-center space-x-2">
                                 <Switch
@@ -488,7 +492,7 @@ export function SubpartList({ modelId }: SubpartListProps) {
                               </TableCell>
                             </>
                           )}
-                          <TableCell className="w-[10%] min-w-[80px] text-center">
+                          <TableCell className="w-[20%] min-w-[70px] text-center">
                             <Button
                               variant="outline"
                               size="sm"

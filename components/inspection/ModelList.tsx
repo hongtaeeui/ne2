@@ -17,7 +17,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { IconMinimize, IconMaximize, IconX } from "@tabler/icons-react";
-import { formatDateOnly } from "@/lib/dateUtils";
 import useInspectionStore from "@/lib/store/inspectionStore";
 import { useGetModels, type Model } from "@/lib/hooks/useModels";
 import { useGetCustomer } from "@/lib/hooks/useCustomer";
@@ -87,14 +86,16 @@ export function ModelList({ inspectionId }: ModelListProps) {
     <Card
       className={
         isModelFullView
-          ? "fixed inset-0 z-50 m-4 transition-all duration-300"
-          : "transition-all duration-300 max-w-full"
+          ? "fixed inset-0 z-50 sm:m-4 transition-all duration-300"
+          : "transition-all duration-300 max-w-full rounded-none"
       }
     >
-      <CardHeader className="flex flex-row items-center justify-between flex-wrap sm:flex-nowrap">
-        <div className="flex flex-row items-center space-x-4 w-full sm:w-auto">
-          <CardTitle className="whitespace-nowrap">모델 리스트</CardTitle>
-          <CardDescription className="whitespace-normal sm:whitespace-nowrap">
+      <CardHeader className="flex flex-row items-center justify-between flex-wrap sm:flex-nowrap p-2 sm:p-6">
+        <div className="flex flex-row items-center space-x-2 sm:space-x-4 w-full sm:w-auto">
+          <CardTitle className="whitespace-nowrap text-base sm:text-lg">
+            모델 리스트
+          </CardTitle>
+          <CardDescription className="whitespace-normal sm:whitespace-nowrap text-xs sm:text-sm">
             {inspectionId
               ? `선택된 인스펙션의 모델 목록 (${
                   modelData?.models?.length || 0
@@ -102,11 +103,12 @@ export function ModelList({ inspectionId }: ModelListProps) {
               : "인스펙션을 선택해주세요"}
           </CardDescription>
         </div>
-        <div className="flex items-center space-x-2 mt-2 sm:mt-0">
+        <div className="flex items-center space-x-1 sm:space-x-2 mt-2 sm:mt-0">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => toggleModelFullView()}
+            className="h-8 w-8"
           >
             {isModelFullView ? (
               <IconMinimize className="h-4 w-4" />
@@ -114,14 +116,23 @@ export function ModelList({ inspectionId }: ModelListProps) {
               <IconMaximize className="h-4 w-4" />
             )}
           </Button>
-          <Button variant="ghost" size="icon" onClick={handleCloseModelList}>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleCloseModelList}
+            className="h-8 w-8"
+          >
             <IconX className="h-4 w-4" />
           </Button>
         </div>
       </CardHeader>
-      <CardContent className={isModelFullView ? "h-[calc(100vh-150px)]" : ""}>
+      <CardContent
+        className={`p-2 sm:p-6 ${
+          isModelFullView ? "h-[calc(100vh-150px)]" : ""
+        }`}
+      >
         {isModelFullView && selectedModel && (
-          <div className="mb-4 p-4 border rounded-lg bg-gray-50">
+          <div className="mb-2 sm:mb-4 p-2 sm:p-4 border rounded-lg bg-gray-50">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <div className="text-sm font-medium text-gray-500">고객사</div>
@@ -160,29 +171,13 @@ export function ModelList({ inspectionId }: ModelListProps) {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[40%] min-w-[200px] text-left whitespace-nowrap">
+                  <TableHead className="w-[50%] min-w-[120px] text-left whitespace-nowrap">
                     모델명
                   </TableHead>
-                  <TableHead className="w-[10%] min-w-[80px] text-center whitespace-nowrap">
+                  <TableHead className="w-[30%] min-w-[60px] text-center whitespace-nowrap">
                     부품 수
                   </TableHead>
-                  {isModelFullView && (
-                    <>
-                      <TableHead className="w-[10%] min-w-[80px] text-center hidden md:table-cell whitespace-nowrap">
-                        상태
-                      </TableHead>
-                      <TableHead className="w-[20%] min-w-[150px] text-left hidden md:table-cell whitespace-nowrap">
-                        고객사
-                      </TableHead>
-                      <TableHead className="w-[10%] min-w-[100px] text-center hidden md:table-cell whitespace-nowrap">
-                        생성일
-                      </TableHead>
-                      <TableHead className="w-[10%] min-w-[100px] text-center hidden md:table-cell whitespace-nowrap">
-                        수정일
-                      </TableHead>
-                    </>
-                  )}
-                  <TableHead className="w-[10%] min-w-[80px] text-center whitespace-nowrap">
+                  <TableHead className="w-[20%] min-w-[70px] text-center whitespace-nowrap">
                     상세보기
                   </TableHead>
                 </TableRow>
@@ -210,31 +205,13 @@ export function ModelList({ inspectionId }: ModelListProps) {
                         }`}
                         onClick={() => handleModelClick(model.id)}
                       >
-                        <TableCell className="w-[40%] min-w-[200px] text-left truncate max-w-[250px]">
+                        <TableCell className="w-[50%] min-w-[120px] text-left truncate max-w-[250px]">
                           {model.name}
                         </TableCell>
-                        <TableCell className="w-[10%] min-w-[80px] text-center">
+                        <TableCell className="w-[30%] min-w-[60px] text-center">
                           {model.subpartCount}
                         </TableCell>
-                        {isModelFullView && (
-                          <>
-                            <TableCell className="w-[10%] min-w-[80px] text-center hidden md:table-cell truncate">
-                              {model.status}
-                            </TableCell>
-                            <TableCell className="w-[20%] min-w-[150px] text-left hidden md:table-cell truncate max-w-[150px]">
-                              {customerData?.customers.find(
-                                (customer) => customer.id === model.customerId
-                              )?.name || "알 수 없음"}
-                            </TableCell>
-                            <TableCell className="w-[10%] min-w-[100px] text-center hidden md:table-cell whitespace-nowrap">
-                              {formatDateOnly(model.createdAt)}
-                            </TableCell>
-                            <TableCell className="w-[10%] min-w-[100px] text-center hidden md:table-cell whitespace-nowrap">
-                              {formatDateOnly(model.updatedAt)}
-                            </TableCell>
-                          </>
-                        )}
-                        <TableCell className="w-[10%] min-w-[80px] text-center">
+                        <TableCell className="w-[20%] min-w-[70px] text-center">
                           <Button
                             variant="outline"
                             size="sm"

@@ -116,7 +116,7 @@ export default function InspectionPage() {
   }, [search]);
 
   return (
-    <div className="p-6 overflow-x-auto">
+    <div className="p-2 sm:p-6 overflow-x-auto">
       <InspectionHeader
         totalInspections={paginatedData?.pagination.total || 0}
       />
@@ -126,14 +126,14 @@ export default function InspectionPage() {
 
       <div className="flex flex-1 flex-col">
         <div className="@container/main flex flex-1 flex-col">
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-1 sm:gap-4">
             <Card className="max-w-full shadow-sm">
-              <CardHeader className="pb-2">
+              <CardHeader className="pb-2 p-3 sm:p-6">
                 <CardTitle>인스펙션 대시보드</CardTitle>
               </CardHeader>
-              <CardContent className="pt-4">
+              <CardContent className="p-0 sm:p-6 ">
                 <div
-                  className={`grid gap-4 overflow-hidden ${
+                  className={`grid gap-1 sm:gap-4 overflow-hidden ${
                     selectedModel && isSubpartListVisible
                       ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
                       : selectedInspection && isModelListVisible
