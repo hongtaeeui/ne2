@@ -21,7 +21,12 @@ interface InspectionHeaderProps {
 export function InspectionHeader({ totalInspections }: InspectionHeaderProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { isRefreshing, setRefreshing } = useInspectionStore();
+  const {
+    isRefreshing,
+    setRefreshing,
+    toggleModelListVisible,
+    toggleSubpartListVisible,
+  } = useInspectionStore();
 
   const [searchTerm, setSearchTerm] = React.useState("");
 
@@ -53,6 +58,10 @@ export function InspectionHeader({ totalInspections }: InspectionHeaderProps) {
     params.set("customerId", value);
     params.set("page", "1"); // 고객사가 변경되면 페이지를 1로 리셋
     router.push(`?${params.toString()}`);
+
+    // 고객사가 변경되면 모델 리스트와 부품 리스트 닫기
+    toggleModelListVisible(false);
+    toggleSubpartListVisible(false);
   };
 
   // 검색어 변경 핸들러
