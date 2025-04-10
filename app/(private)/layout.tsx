@@ -174,7 +174,7 @@ export default function PrivateLayout({
           </SheetContent>
         </Sheet>
         <div className="flex-1">
-          <Link href="/dashboard" className="text-xl font-bold">
+          <Link href="/inspection" className="text-xl font-bold">
             NeuronAware
           </Link>
         </div>
