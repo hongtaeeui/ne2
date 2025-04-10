@@ -49,9 +49,10 @@ export function ClientLayout({ children }: ClientLayoutProps) {
     <ThemeProvider
       attribute="class"
       defaultTheme="system"
-      enableSystem
-      disableTransitionOnChange
-      enableColorScheme
+      enableSystem={true}
+      disableTransitionOnChange={false}
+      enableColorScheme={true}
+      storageKey="theme-preference"
     >
       <ActiveThemeProvider initialTheme={activeTheme}>
         <Providers>{children}</Providers>
