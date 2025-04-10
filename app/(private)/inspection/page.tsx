@@ -8,6 +8,7 @@ import useAuthStore from "@/lib/store/authStore";
 import useIpStore from "@/lib/store/ipStore";
 import useInspectionStore from "@/lib/store/inspectionStore";
 import useInspectionUpdateStore from "@/lib/store/inspectionUpdateStore";
+import { Suspense } from "react";
 
 // 컴포넌트 임포트
 import { InspectionHeader } from "@/components/inspection/InspectionHeader";
@@ -30,6 +31,14 @@ function getInUseStatusColor(inUse: number | undefined) {
 }
 
 export default function InspectionPage() {
+  return (
+    <Suspense fallback={<div>로딩중...</div>}>
+      <InspectionPageContent />
+    </Suspense>
+  );
+}
+
+function InspectionPageContent() {
   const searchParams = useSearchParams();
   const { user } = useAuthStore();
   const { ip } = useIpStore();
