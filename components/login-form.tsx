@@ -105,7 +105,7 @@ export function LoginForm({
     }
 
     // Redirect to dashboard
-    router.push("/dashboard");
+    router.push("/inspection");
     router.refresh();
   };
 

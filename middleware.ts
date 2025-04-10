@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 // 인증이 필요한 경로
-const protectedPaths = ["/dashboard", "/profile"];
+const protectedPaths = ["/inspection"];
 // 인증된 사용자가 접근하면 리다이렉트할 경로 (로그인 상태에서 로그인 페이지 접근 등)
 const authRedirectPaths = ["/login", "/register"];
 

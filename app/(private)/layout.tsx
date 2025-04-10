@@ -67,7 +67,7 @@ function MobileNav({
     <div className="flex flex-col gap-4 py-4">
       <div className="px-2">
         <Link
-          href="/dashboard"
+          href="/inspection"
           className="flex items-center gap-2 font-semibold"
           onClick={() => setIsMobileSidebarOpen(false)}
         >
@@ -218,7 +218,7 @@ export default function PrivateLayout({
           <div className="flex h-14 items-center border-b px-4 justify-between">
             {!isSidebarCollapsed && (
               <Link
-                href="/dashboard"
+                href="/inspection"
                 className="flex items-center gap-2 font-semibold"
               >
                 <IconGauge className="size-5" />
