@@ -85,7 +85,12 @@ function InspectionPageContent() {
           <div className="flex flex-col gap-1 sm:gap-4">
             <Card className="max-w-full shadow-sm">
               <CardHeader className="pb-2 p-3 sm:p-6">
-                <CardTitle>인스펙션 대시보드</CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle>인스펙션 대시보드</CardTitle>
+                  <span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-500 text-white">
+                    Production DB
+                  </span>
+                </div>
               </CardHeader>
               <CardContent className="p-0 sm:p-6 ">
                 <div

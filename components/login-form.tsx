@@ -126,9 +126,9 @@ export function LoginForm({
             height={200} // 원하는 높이
             className="-my-10" // 추가적인 스타일
           />
-          <CardTitle className="text-center ">Login</CardTitle>
+          <CardTitle className="text-center ">ERP SYSTEM</CardTitle>
           <CardDescription className="text-center">
-            Enter your email below to login to your account
+            Email과 비밀번호를 입력해주세요.
           </CardDescription>
         </CardHeader>
         <CardContent>
